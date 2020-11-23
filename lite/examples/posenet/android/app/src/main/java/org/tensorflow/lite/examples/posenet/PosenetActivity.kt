@@ -569,6 +569,8 @@ class PosenetActivity :
       (70.0f * heightRatio + bottom),
       paint
     )
+    frameCounter++;
+    Log.d("Frame : ", frameCounter.toString());
 
     // Draw!
     surfaceHolder!!.unlockCanvasAndPost(canvas)

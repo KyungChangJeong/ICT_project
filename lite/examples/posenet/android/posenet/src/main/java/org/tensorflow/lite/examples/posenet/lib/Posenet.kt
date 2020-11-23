@@ -193,6 +193,8 @@ class Posenet(
    * returns:
    *      person: a Person object containing data about keypoint locations and confidence scores
    */
+
+  // 사람의 스켈레톤 및 점수 획득
   @Suppress("UNCHECKED_CAST")
   fun estimateSinglePose(bitmap: Bitmap): Person {
     val estimationStartTimeNanos = SystemClock.elapsedRealtimeNanos()
@@ -267,9 +269,15 @@ class Posenet(
       keypointList[idx].position.x = xCoords[idx]
       keypointList[idx].position.y = yCoords[idx]
       keypointList[idx].score = confidenceScores[idx]
+      Log.d("keypoint.bodyPart", keypointList[idx].bodyPart.toString());
+      Log.d("keypoint.position.x", keypointList[idx].position.x.toString());
+      Log.d("keypoint.position.y", keypointList[idx].position.y.toString());
+      Log.d("keypoint.score", keypointList[idx].score.toString());
+
       totalScore += confidenceScores[idx]
     }
 
+    // 이부분 출력해서 확인해보기
     person.keyPoints = keypointList.toList()
     person.score = totalScore / numKeypoints
 
