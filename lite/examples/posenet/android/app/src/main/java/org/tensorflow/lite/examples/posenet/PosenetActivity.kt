@@ -21,6 +21,7 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -43,6 +44,7 @@ import android.media.ImageReader.OnImageAvailableListener
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.ParcelFileDescriptor.open
 import android.os.Process
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
@@ -57,12 +59,23 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import org.json.JSONObject
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import org.tensorflow.lite.examples.posenet.lib.BodyPart
 import org.tensorflow.lite.examples.posenet.lib.Person
 import org.tensorflow.lite.examples.posenet.lib.Posenet
+import org.tensorflow.lite.examples.posenet.lib.
+import java.io.BufferedReader
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.nio.channels.AsynchronousFileChannel.open
+import java.nio.channels.AsynchronousServerSocketChannel.open
+import java.nio.channels.AsynchronousSocketChannel.open
+import java.nio.channels.FileChannel.open
+
+
 
 class PosenetActivity :
   Fragment(),
@@ -493,6 +506,8 @@ class PosenetActivity :
     paint.strokeWidth = 8.0f
   }
 
+
+
   /** Draw bitmap on Canvas.   */
   private fun draw(canvas: Canvas, person: Person, bitmap: Bitmap) {
     canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
@@ -578,6 +593,7 @@ class PosenetActivity :
     surfaceHolder!!.unlockCanvasAndPost(canvas)
   }
 
+
   /** Process image using Posenet library.   */
   private fun processImage(bitmap: Bitmap) {
     // Crop bitmap.
@@ -661,6 +677,8 @@ class PosenetActivity :
       )
     }
   }
+
+
 
   /**
    * Shows an error message dialog.
