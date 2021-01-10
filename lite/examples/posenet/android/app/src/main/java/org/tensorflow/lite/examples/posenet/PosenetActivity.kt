@@ -66,7 +66,6 @@ import kotlin.math.abs
 import org.tensorflow.lite.examples.posenet.lib.BodyPart
 import org.tensorflow.lite.examples.posenet.lib.Person
 import org.tensorflow.lite.examples.posenet.lib.Posenet
-import org.tensorflow.lite.examples.posenet.lib.
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -586,8 +585,18 @@ class PosenetActivity :
       (70.0f * heightRatio + bottom),
       paint
     )
-    frameCounter++;
+    val Teststring = "hdgsd"
+
+    canvas.drawText(
+      "동작 Result: $Teststring",
+      (15.0f * widthRatio),
+      (90.0f * heightRatio + bottom),
+      paint
+    )
+
+
     Log.d("Frame : ", frameCounter.toString());
+    frameCounter++;
 
     // Draw!
     surfaceHolder!!.unlockCanvasAndPost(canvas)
