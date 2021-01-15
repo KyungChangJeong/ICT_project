@@ -60,6 +60,10 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import org.json.JSONObject
+import org.tensorflow.lite.examples.posenet.lib.ActionFlag
+import org.tensorflow.lite.examples.posenet.lib.ActionCount
+import org.tensorflow.lite.examples.posenet.lib.estimate_RIGHT_Arm
+import org.tensorflow.lite.examples.posenet.lib.estimate_LEFT_Arm
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
@@ -171,6 +175,7 @@ class PosenetActivity :
 
 
 
+
   /** [CameraDevice.StateCallback] is called when [CameraDevice] changes its state.   */
   private val stateCallback = object : CameraDevice.StateCallback() {
 
@@ -241,6 +246,7 @@ class PosenetActivity :
     super.onStart()
     openCamera()
     posenet = Posenet(this.context!!)
+
   }
 
   override fun onPause() {
@@ -501,7 +507,7 @@ class PosenetActivity :
   /** Set the paint color and size.    */
   private fun setPaint() {
     paint.color = Color.RED
-    paint.textSize = 80.0f
+    paint.textSize = 60.0f
     paint.strokeWidth = 8.0f
   }
 
@@ -585,25 +591,51 @@ class PosenetActivity :
       (70.0f * heightRatio + bottom),
       paint
     )
-    val Teststring = "hdgsd"
 
+
+
+    var Teststring = ""
+    var Teststring_1 = "hdgsd"
+    var Teststring_2 = "쿠쿠루"
+    Log.d("동작 플래그", ActionFlag.toString())
+
+    if(ActionFlag == 0 || ActionFlag == 2){
+      Teststring = "차렷";
+    }
+    else if(ActionFlag == 1){
+      Teststring = "왼쪽";
+    }
+    else if(ActionFlag == 3){
+      Teststring = "오른쪽";
+    }
+
+    // 실시간 피드백
+    // Toast 메세지 띄우기 & 핸드폰 TalkBack 기능 키기
+    // Toast.makeText(this.context,"$Teststring",Toast.LENGTH_LONG).show()
     canvas.drawText(
-      "동작 Result: $Teststring",
+      "수행 동작 : $Teststring      수행 횟수 : $ActionCount",
       (15.0f * widthRatio),
       (90.0f * heightRatio + bottom),
       paint
     )
-
+    canvas.drawText(
+      "왼팔 : $estimate_LEFT_Arm / 오른팔 : $estimate_RIGHT_Arm",
+      (15.0f * widthRatio),
+      (110.0f * heightRatio + bottom),
+      paint
+    )
 
     Log.d("Frame : ", frameCounter.toString());
     frameCounter++;
+
 
     // Draw!
     surfaceHolder!!.unlockCanvasAndPost(canvas)
   }
 
 
-  /** Process image using Posenet library.   */
+
+    /** Process image using Posenet library.   */
   private fun processImage(bitmap: Bitmap) {
     // Crop bitmap.
     val croppedBitmap = cropBitmap(bitmap)
