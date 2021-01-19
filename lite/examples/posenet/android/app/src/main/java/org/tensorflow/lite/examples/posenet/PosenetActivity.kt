@@ -538,10 +538,18 @@ class PosenetActivity :
     bottom = top + screenHeight
 
     setPaint()
+
+    Log.d("left", left.toString());
+    Log.d("top", top.toString());
+    Log.d("right", right.toString());
+    Log.d("bottom", bottom.toString());
+
+
+    // 카메라 그리기
     canvas.drawBitmap(
       bitmap,
       Rect(0, 0, bitmap.width, bitmap.height),
-      Rect(left, top, right, bottom),
+      Rect(0, 1500, 500, 2000),
       paint
     )
 
@@ -552,6 +560,7 @@ class PosenetActivity :
     for (keyPoint in person.keyPoints) {
       if (keyPoint.score > minConfidence) {
         val position = keyPoint.position
+
         val adjustedX: Float = position.x.toFloat() * widthRatio + left
         val adjustedY: Float = position.y.toFloat() * heightRatio + top
         canvas.drawCircle(adjustedX, adjustedY, circleRadius, paint)
@@ -576,21 +585,21 @@ class PosenetActivity :
     canvas.drawText(
       "Score: %.2f".format(person.score),
       (15.0f * widthRatio),
-      (30.0f * heightRatio + bottom),
+      (10.0f * heightRatio ),
       paint
     )
-    canvas.drawText(
-      "Device: %s".format(posenet.device),
-      (15.0f * widthRatio),
-      (50.0f * heightRatio + bottom),
-      paint
-    )
-    canvas.drawText(
-      "Time: %.2f ms".format(posenet.lastInferenceTimeNanos * 1.0f / 1_000_000),
-      (15.0f * widthRatio),
-      (70.0f * heightRatio + bottom),
-      paint
-    )
+//    canvas.drawText(
+//      "Device: %s".format(posenet.device),
+//      (15.0f * widthRatio),
+//      (50.0f * heightRatio ),
+//      paint
+//    )
+//    canvas.drawText(
+//      "Time: %.2f ms".format(posenet.lastInferenceTimeNanos * 1.0f / 1_000_000),
+//      (15.0f * widthRatio),
+//      (30.0f * heightRatio ),
+//      paint
+//    )
 
 
 
@@ -615,13 +624,13 @@ class PosenetActivity :
     canvas.drawText(
       "수행 동작 : $Teststring      수행 횟수 : $ActionCount",
       (15.0f * widthRatio),
-      (90.0f * heightRatio + bottom),
+      (30.0f * heightRatio ),
       paint
     )
     canvas.drawText(
       "왼팔 : $estimate_LEFT_Arm / 오른팔 : $estimate_RIGHT_Arm",
       (15.0f * widthRatio),
-      (110.0f * heightRatio + bottom),
+      (50.0f * heightRatio),
       paint
     )
 
