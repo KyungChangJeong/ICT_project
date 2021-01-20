@@ -20,4 +20,12 @@
   <color name="tfe_color_accent">#425066</color>
 
   <color name="tfe_semi_transparent">#66000000</color>
+
+  <!--서빈-->
+  <!--색 추가-->
+  <color name="black">#FF000000</color>
+  <color name="white">#FFFFFFFF</color>
+  <color name="gray_blue">#929CA6</color>
+  <color name="whisper">#E9E9E9</color>
+  <color name="aluminium">#7E878F</color>
 </resources>

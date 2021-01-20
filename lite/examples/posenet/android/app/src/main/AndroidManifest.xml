@@ -9,9 +9,11 @@
 
   <uses-sdk />
 
+  <!--서빈-->
+  <!--앱 런처 아이콘 변경 및 메인 화면 부분과 합치기 위해 필요한 부분 추가-->
   <application
       android:allowBackup="true"
-      android:icon="@mipmap/ic_launcher"
+      android:icon="@mipmap/ic_launcher_logo"
       android:label="@string/tfe_pn_app_name"
       android:roundIcon="@mipmap/ic_launcher_round"
       android:supportsRtl="true"
@@ -23,12 +25,15 @@
         android:exported="true">
     </activity>
 
-    <activity android:name=".CameraActivity" android:exported="true">
+    <activity android:name=".SplashActivity">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>
+
+    <activity android:name=".CameraActivity" android:exported="true" />
+    <activity android:name=".MainActivity" />
 
   </application>
 
