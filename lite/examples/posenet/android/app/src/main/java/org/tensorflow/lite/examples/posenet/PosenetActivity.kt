@@ -16,69 +16,35 @@
 
 package org.tensorflow.lite.examples.posenet
 
+
 import android.Manifest
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.pm.PackageManager
-import android.content.res.AssetManager
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.ImageFormat
-import android.graphics.Matrix
-import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.Rect
-import android.hardware.camera2.CameraAccessException
-import android.hardware.camera2.CameraCaptureSession
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraDevice
-import android.hardware.camera2.CameraManager
-import android.hardware.camera2.CaptureRequest
-import android.hardware.camera2.CaptureResult
-import android.hardware.camera2.TotalCaptureResult
+import android.graphics.*
+import android.hardware.camera2.*
 import android.media.Image
 import android.media.ImageReader
 import android.media.ImageReader.OnImageAvailableListener
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
-import android.os.ParcelFileDescriptor.open
 import android.os.Process
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
 import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
-import android.view.LayoutInflater
-import android.view.Surface
-import android.view.SurfaceHolder
-import android.view.SurfaceView
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.VideoView
 import androidx.core.app.ActivityCompat
-import org.json.JSONObject
-import org.tensorflow.lite.examples.posenet.lib.ActionFlag
-import org.tensorflow.lite.examples.posenet.lib.ActionCount
-import org.tensorflow.lite.examples.posenet.lib.estimate_RIGHT_Arm
-import org.tensorflow.lite.examples.posenet.lib.estimate_LEFT_Arm
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import org.tensorflow.lite.examples.posenet.lib.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
-import org.tensorflow.lite.examples.posenet.lib.BodyPart
-import org.tensorflow.lite.examples.posenet.lib.Person
-import org.tensorflow.lite.examples.posenet.lib.Posenet
-import java.io.BufferedReader
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.nio.channels.AsynchronousFileChannel.open
-import java.nio.channels.AsynchronousServerSocketChannel.open
-import java.nio.channels.AsynchronousSocketChannel.open
-import java.nio.channels.FileChannel.open
-
 
 
 class PosenetActivity :
@@ -174,8 +140,9 @@ class PosenetActivity :
   /** Abstract interface to someone holding a display surface.    */
   private var surfaceHolder: SurfaceHolder? = null
 
+  private var videoView: VideoView ?= null
 
-
+  private var mediaPlayer: MediaPlayer?=null
 
   /** [CameraDevice.StateCallback] is called when [CameraDevice] changes its state.   */
   private val stateCallback = object : CameraDevice.StateCallback() {
@@ -226,6 +193,8 @@ class PosenetActivity :
     val activity = activity
     activity?.runOnUiThread { Toast.makeText(activity, text, Toast.LENGTH_SHORT).show() }
   }
+
+
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -293,6 +262,7 @@ class PosenetActivity :
    */
   private fun setUpCameraOutputs() {
     val activity = activity
+//    video()
     val manager = activity!!.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     try {
       for (cameraId in manager.cameraIdList) {
@@ -463,7 +433,6 @@ class PosenetActivity :
         rotateMatrix, true
       )
       image.close()
-
       processImage(rotatedBitmap)
     }
   }
@@ -511,11 +480,46 @@ class PosenetActivity :
     paint.textSize = 60.0f
     paint.strokeWidth = 8.0f
   }
-
+// private fun video() {
+//   videoView = view?.findViewById(R.id.videoView)
+//
+//   this.videoView?.setVideoPath("android.resource://org.tensorflow.lite.examples.posenet/"+R.raw.sidejack)
+//   this.videoView?.start()
+//   this.videoView?.setOnPreparedListener {
+//       m: MediaPlayer ->
+//     m.setOnVideoSizeChangedListener {
+//         m: MediaPlayer?, width: Int, height: Int ->
+//       val mediaController = MediaController(this.context!!)
+//       this.videoView?.setMediaController(mediaController)
+//       mediaController.setAnchorView(this.videoView)
+//     }
+// }
+//}
 
 
   /** Draw bitmap on Canvas.   */
   private fun draw(canvas: Canvas, person: Person, bitmap: Bitmap) {
+
+    if (mediaPlayer == null) {
+      mediaPlayer = MediaPlayer()
+    } else {
+      mediaPlayer!!.reset()
+    }
+
+    try {
+      val path = "android.resource://org.tensorflow.lite.examples.posenet/"+R.raw.sidejack
+      mediaPlayer!!.setDataSource(path)
+
+      //mediaPlayer.setVolume(0, 0); //볼륨 제거
+      mediaPlayer!!.setDisplay(surfaceHolder) // 화면 호출
+      mediaPlayer!!.prepare() // 비디오 load 준비
+
+      //mediaPlayer.setOnCompletionListener(completionListener); // 비디오 재생 완료 리스너
+      mediaPlayer!!.start()
+    } catch (e: Exception) {
+      Log.e("MyTag", "surface view error : " + e.message)
+    }
+
     canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
     // Draw `bitmap` and `person` in square canvas.
     val screenWidth: Int
@@ -540,10 +544,6 @@ class PosenetActivity :
 
     setPaint()
 
-    Log.d("left", left.toString());
-    Log.d("top", top.toString());
-    Log.d("right", right.toString());
-    Log.d("bottom", bottom.toString());
 
 
     // 카메라 그리기
@@ -586,7 +586,7 @@ class PosenetActivity :
     canvas.drawText(
       "Score: %.2f".format(person.score),
       (15.0f * widthRatio),
-      (10.0f * heightRatio ),
+      (10.0f * heightRatio),
       paint
     )
 //    canvas.drawText(
@@ -609,31 +609,40 @@ class PosenetActivity :
     var Teststring_2 = "쿠쿠루"
     Log.d("동작 플래그", ActionFlag.toString())
 
-    if(ActionFlag == 0 || ActionFlag == 2){
-      Teststring = "차렷";
-    }
-    else if(ActionFlag == 1){
-      Teststring = "왼쪽";
-    }
-    else if(ActionFlag == 3){
-      Teststring = "오른쪽";
-    }
+//    if(ActionFlag == 0 || ActionFlag == 2){
+//      Teststring = "차렷";
+//    }
+//    else if(ActionFlag == 1){
+//      Teststring = "왼쪽";
+//    }
+//    else if(ActionFlag == 3){
+//      Teststring = "오른쪽";
+//    }
+
+
+
 
     // 실시간 피드백
     // Toast 메세지 띄우기 & 핸드폰 TalkBack 기능 키기
     // Toast.makeText(this.context,"$Teststring",Toast.LENGTH_LONG).show()
     canvas.drawText(
-      "수행 동작 : $Teststring      수행 횟수 : $ActionCount",
+      "수행 동작 : $ActionFeedback ",
       (15.0f * widthRatio),
-      (30.0f * heightRatio ),
+      (30.0f * heightRatio),
       paint
     )
-    canvas.drawText(
-      "왼팔 : $estimate_LEFT_Arm / 오른팔 : $estimate_RIGHT_Arm",
-      (15.0f * widthRatio),
-      (50.0f * heightRatio),
-      paint
-    )
+//    canvas.drawText(
+//      "수행 동작 : $ActionFeedback      수행 횟수 : $ActionCount",
+//      (15.0f * widthRatio),
+//      (30.0f * heightRatio),
+//      paint
+//    )
+//    canvas.drawText(
+//      "왼팔 : $estimate_LEFT_Arm / 오른팔 : $estimate_RIGHT_Arm",
+//      (15.0f * widthRatio),
+//      (50.0f * heightRatio),
+//      paint
+//    )
 
     Log.d("Frame : ", frameCounter.toString());
     frameCounter++;
@@ -645,7 +654,7 @@ class PosenetActivity :
 
 
 
-    /** Process image using Posenet library.   */
+  /** Process image using Posenet library.   */
   private fun processImage(bitmap: Bitmap) {
     // Crop bitmap.
     val croppedBitmap = cropBitmap(bitmap)

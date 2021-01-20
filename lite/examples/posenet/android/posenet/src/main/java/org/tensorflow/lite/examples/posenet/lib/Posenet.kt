@@ -58,9 +58,9 @@ enum class BodyPart {
 }
 
 var frameCounter = 0
+var ActiveCounter = 130
 
-// 16가지 각도 체크
-
+// 실시간 데이터 16가지 각도 체크
 var LEFT_SIDE_Arm_angle: Double = 0.0
 var LEFT_SIDE_Leg_angle: Double = 0.0
 var RIGHT_SIDE_Arm_angle: Double = 0.0
@@ -78,11 +78,32 @@ var RIGHT_KneeDown_angle: Double = 0.0
 var CENTER_Body_angle: Double = 0.0
 var CENTER_Shoulder_angle: Double = 0.0
 
+
+// Json 데이터 16가지 각도 체크
+var JSON_LEFT_SIDE_Arm_angle: Double = 0.0
+var JSON_LEFT_SIDE_Leg_angle: Double = 0.0
+var JSON_RIGHT_SIDE_Arm_angle: Double = 0.0
+var JSON_RIGHT_SIDE_Leg_angle: Double = 0.0
+var Json_LEFT_ForeArm_angle: Double = 0.0
+var Json_LEFT_Arm_angle: Double = 0.0
+var Json_LEFT_Body_angle: Double = 0.0
+var Json_LEFT_KneeUp_angle: Double = 0.0
+var Json_LEFT_KneeDown_angle: Double = 0.0
+var Json_RIGHT_ForeArm_angle: Double = 0.0
+var Json_RIGHT_Arm_angle: Double = 0.0
+var Json_RIGHT_Body_angle: Double = 0.0
+var Json_RIGHT_KneeUp_angle: Double = 0.0
+var Json_RIGHT_KneeDown_angle: Double = 0.0
+var Json_CENTER_Body_angle: Double = 0.0
+var Json_CENTER_Shoulder_angle: Double = 0.0
+
 // 차렷(stand)0 / 왼발(left)1 /차렷(stand)2 /  오른발(right)3
 var ActionFlag: Int = 0
 var ActionCount: Int = 0
 var estimate_LEFT_Arm = ""
 var estimate_RIGHT_Arm = ""
+
+var ActionFeedback = ""
 
 var tts: TextToSpeech? = null
 
@@ -319,7 +340,6 @@ class Posenet(
             Log.d("keypoint.score", keypointList[idx].score.toString());
 
             totalScore += confidenceScores[idx]
-
         }
 
         //    0. NOSE
@@ -341,12 +361,7 @@ class Posenet(
         //    16. RIGHT_ANKLE
 
 
-        // 실시간 데이터 점수가 낮을경우
-        // 한 프레임 비교 안하도록
-        Log.d("totalScore", totalScore.toString())
-        if (totalScore >= 90) {
 
-        }
 
 
         // 값 수정 X
@@ -511,33 +526,61 @@ class Posenet(
         Log.d("CENTER_Shoulder", CENTER_Shoulder_angle.toString());
 
 
-        // 10Frame 별로 실시간데이터 평가
-        if ((frameCounter % 20) == 0) {
+
+
+//        //tts 생성
+//
+//
+//        val tts = TextToSpeech(this.context) {
+//            if (it == TextToSpeech.SUCCESS) {
+//                val result = tts?.setLanguage(Locale.KOREAN)
+//                // 언어 설정
+//            }
+//        }
+//
+//        tts.setSpeechRate(0.9f)
+//        // 말하는 속도 설정
+//
+//        tts.speak("말할 텍스트를 입력!", TextToSpeech.QUEUE_FLUSH, null, null)
+//        // 말해!
+//
+//        tts.stop()
+//        // tts speaking 중지
+//
+//        tts.shutdown()
+//        // tts 중지
+
+
+        // 선생데이터 (JSON파일 프레임 데이터 추출)
+        jsonObjectsExample()
+
+
+
+
+
+
+
+        // 프레임별 실시간데이터 & 선생데이터 비교
+
+        // 실시간 데이터 점수가 낮을경우
+        // 한 프레임 비교 안하도록
+//        Log.d("totalScore", totalScore.toString())
+//        if (totalScore >= 90) {
+//            // 10Frame 별로 실시간데이터 평가
+//
+//        }
+//        else{
+//
+//        }
+
+
+        if ((frameCounter % 5) == 0) {
             poseEstimate(person);
+            FrameComparison();
         }
-        //tts 생성
 
 
-        val tts = TextToSpeech(this.context) {
-            if (it == TextToSpeech.SUCCESS) {
-                val result = tts?.setLanguage(Locale.KOREAN)
 
-                // 언어 설정
-            }
-        }
-        tts.setSpeechRate(0.9f)
-        // 말하는 속도 설정
-
-        tts.speak("말할 텍스트를 입력!", TextToSpeech.QUEUE_FLUSH, null, null)
-        // 말해!
-
-        tts.stop()
-        // tts speaking 중지
-
-        tts.shutdown()
-        // tts 중지
-
-//        jsonObjectsExample()
         frameCounter++;
 
         return person
@@ -548,17 +591,20 @@ class Posenet(
     @SuppressLint("LongLogTag")
     fun jsonObjectsExample() {
 
+
+
+
         // 파일 경로 세팅 완료
         var filePathFirst = "jsons/sidejack/"
         var filePathFinal = ".json"
 
         // 실제
-//        var fileJsonPath = filePathFirst+ frameCounter + filePathFinal
+        var fileJsonPath = filePathFirst+ ActiveCounter + filePathFinal
 
         // test용
-        var fileJsonPath = filePathFirst + 0 + filePathFinal
+//        var fileJsonPath = filePathFirst + 0 + filePathFinal
 
-        Log.d("JSON_FRAME_COUNTER", frameCounter.toString());
+        Log.d("JSON_FRAME_COUNTER", ActiveCounter.toString());
         Log.d("파일 경로 확인", fileJsonPath)
 
         // open 해결 => 0 ~ 160 Frame의 정보 가져오도록
@@ -569,8 +615,8 @@ class Posenet(
         val jo = JSONObject(str)
 
         // 객체 불러옴
-        val jArray = jo.getJSONArray("FRAME0")
-//        val jArray = jo.getJSONArray("FRAME$frameCounter")
+//        val jArray = jo.getJSONArray("FRAME0")
+        val jArray = jo.getJSONArray("FRAME$ActiveCounter")
 
         for (i in 0 until jArray.length()) {
             val obj = jArray.getJSONObject(i)
@@ -586,6 +632,7 @@ class Posenet(
         }
 
         // 12가지 Json 각도 체크
+
         var Json_LEFT_ForeArm: Int = 0
         var Json_LEFT_Arm: Int = 0
         var Json_LEFT_Body: Int = 0
@@ -609,7 +656,7 @@ class Posenet(
             jArray.getJSONObject(9).getInt("y") - jArray.getJSONObject(5).getInt(
                 "y"
             )
-        val JSON_LEFT_SIDE_Arm_angle = Math.atan2(
+        JSON_LEFT_SIDE_Arm_angle = Math.atan2(
             JSON_LEFT_SIDE_Arm_Y.toDouble(),
             JSON_LEFT_SIDE_Arm_X.toDouble()
         ) * (180.0 / Math.PI)
@@ -624,7 +671,7 @@ class Posenet(
             jArray.getJSONObject(15).getInt("y") - jArray.getJSONObject(11).getInt(
                 "y"
             )
-        val JSON_LEFT_SIDE_Leg_angle = Math.atan2(
+        JSON_LEFT_SIDE_Leg_angle = Math.atan2(
             JSON_LEFT_SIDE_Leg_Y.toDouble(),
             JSON_LEFT_SIDE_Leg_X.toDouble()
         ) * (180.0 / Math.PI)
@@ -639,7 +686,7 @@ class Posenet(
             jArray.getJSONObject(6).getInt("y") - jArray.getJSONObject(10).getInt(
                 "y"
             )
-        val JSON_RIGHT_SIDE_Arm_angle = Math.atan2(
+        JSON_RIGHT_SIDE_Arm_angle = Math.atan2(
             JSON_RIGHT_SIDE_Arm_Y.toDouble(),
             JSON_RIGHT_SIDE_Arm_X.toDouble()
         ) * (180.0 / Math.PI)
@@ -654,7 +701,7 @@ class Posenet(
             jArray.getJSONObject(16).getInt("y") - jArray.getJSONObject(12).getInt(
                 "y"
             )
-        val JSON_RIGHT_SIDE_Leg_angle = Math.atan2(
+        JSON_RIGHT_SIDE_Leg_angle = Math.atan2(
             JSON_RIGHT_SIDE_Leg_Y.toDouble(),
             JSON_RIGHT_SIDE_Leg_X.toDouble()
         ) * (180.0 / Math.PI)
@@ -671,7 +718,7 @@ class Posenet(
                 "y"
             )
 //        Log.d("Json_Left_ForeArm_Y", Json_LEFT_ForeArm_Y.toString());
-        val Json_LEFT_ForeArm_angle = Math.atan2(
+        Json_LEFT_ForeArm_angle = Math.atan2(
             Json_LEFT_ForeArm_Y.toDouble(),
             Json_LEFT_ForeArm_X.toDouble()
         ) * (180.0 / Math.PI)
@@ -684,7 +731,7 @@ class Posenet(
         val Json_LEFT_Arm_Y =
             jArray.getJSONObject(7).getInt("y") - jArray.getJSONObject(5).getInt("y")
 //        Log.d("Json_LEFT_Arm_Y", Json_LEFT_Arm_Y.toString());
-        val Json_LEFT_Arm_angle =
+        Json_LEFT_Arm_angle =
             Math.atan2(Json_LEFT_Arm_Y.toDouble(), Json_LEFT_Arm_X.toDouble()) * (180.0 / Math.PI)
         Log.d("Json_LEFT_Arm_angle", Json_LEFT_Arm_angle.toString());
 
@@ -699,7 +746,7 @@ class Posenet(
                 "y"
             )
 //        Log.d("Json_LEFT_Body_Y", Json_LEFT_Body_Y.toString());
-        val Json_LEFT_Body_angle = Math.atan2(
+        Json_LEFT_Body_angle = Math.atan2(
             Json_LEFT_Body_Y.toDouble(),
             Json_LEFT_Body_X.toDouble()
         ) * (180.0 / Math.PI)
@@ -716,7 +763,7 @@ class Posenet(
                 "y"
             )
 //        Log.d("Json_LEFT_KneeUp_Y", Json_LEFT_KneeUp_Y.toString());
-        val Json_LEFT_KneeUp_angle = Math.atan2(
+        Json_LEFT_KneeUp_angle = Math.atan2(
             Json_LEFT_KneeUp_Y.toDouble(),
             Json_LEFT_KneeUp_X.toDouble()
         ) * (180.0 / Math.PI)
@@ -733,7 +780,7 @@ class Posenet(
                 "y"
             )
 //        Log.d("Json_LEFT_KneeDown_Y", Json_LEFT_KneeDown_Y.toString());
-        val Json_LEFT_KneeDown_angle = Math.atan2(
+        Json_LEFT_KneeDown_angle = Math.atan2(
             Json_LEFT_KneeDown_Y.toDouble(),
             Json_LEFT_KneeDown_X.toDouble()
         ) * (180.0 / Math.PI)
@@ -751,11 +798,11 @@ class Posenet(
                 "y"
             )
 //        Log.d("Json_RIGHT_ForeArm_Y", Json_LEFT_ForeArm_Y.toString());
-        val Json_RIGHT_ForeArm_angle = Math.atan2(
+        Json_RIGHT_ForeArm_angle = Math.atan2(
             Json_RIGHT_ForeArm_Y.toDouble(),
             Json_RIGHT_ForeArm_X.toDouble()
         ) * (180.0 / Math.PI)
-        Log.d("Json_RIGHT_ForeArm_angle", Json_LEFT_ForeArm_angle.toString());
+        Log.d("Json_RIGHT_ForeArm_angle", Json_RIGHT_ForeArm_angle.toString());
 
         // Json_RIGHT_Arm
         val Json_RIGHT_Arm_X = jArray.getJSONObject(8).getInt("x") - jArray.getJSONObject(6).getInt(
@@ -766,7 +813,7 @@ class Posenet(
             "y"
         )
 //        Log.d("Json_RIGHT_Arm_Y", Json_RIGHT_Arm_Y.toString());
-        val Json_RIGHT_Arm_angle = Math.atan2(
+        Json_RIGHT_Arm_angle = Math.atan2(
             Json_RIGHT_Arm_Y.toDouble(),
             Json_RIGHT_Arm_X.toDouble()
         ) * (180.0 / Math.PI)
@@ -783,7 +830,7 @@ class Posenet(
                 "y"
             )
 //        Log.d("Json_RIGHT_Body_Y", Json_RIGHT_Body_Y.toString());
-        val Json_RIGHT_Body_angle = Math.atan2(
+        Json_RIGHT_Body_angle = Math.atan2(
             Json_RIGHT_Body_Y.toDouble(),
             Json_RIGHT_Body_X.toDouble()
         ) * (180.0 / Math.PI)
@@ -800,7 +847,7 @@ class Posenet(
                 "y"
             )
 //        Log.d("Json_RIGHT_KneeUp_Y", Json_RIGHT_KneeUp_Y.toString());
-        val Json_RIGHT_KneeUp_angle = Math.atan2(
+        Json_RIGHT_KneeUp_angle = Math.atan2(
             Json_RIGHT_KneeUp_Y.toDouble(),
             Json_RIGHT_KneeUp_X.toDouble()
         ) * (180.0 / Math.PI)
@@ -817,7 +864,7 @@ class Posenet(
                 "y"
             )
 //        Log.d("Json_RIGHT_KneeDown_Y", Json_RIGHT_KneeDown_Y.toString());
-        val Json_RIGHT_KneeDown_angle = Math.atan2(
+        Json_RIGHT_KneeDown_angle = Math.atan2(
             Json_RIGHT_KneeDown_Y.toDouble(),
             Json_RIGHT_KneeDown_X.toDouble()
         ) * (180.0 / Math.PI)
@@ -834,7 +881,7 @@ class Posenet(
                 "y"
             )
 //        Log.d("Json_CENTER_Body_Y", Json_CENTER_Body_Y.toString());
-        val Json_CENTER_Body_angle = Math.atan2(
+        Json_CENTER_Body_angle = Math.atan2(
             Json_CENTER_Body_Y.toDouble(),
             Json_CENTER_Body_X.toDouble()
         ) * (180.0 / Math.PI)
@@ -851,16 +898,87 @@ class Posenet(
                 "y"
             )
 //        Log.d("Json_CENTER_Shoulder_Y", Json_CENTER_Shoulder_Y.toString());
-        val Json_CENTER_Shoulder_angle = Math.atan2(
+        Json_CENTER_Shoulder_angle = Math.atan2(
             Json_CENTER_Shoulder_Y.toDouble(),
             Json_CENTER_Shoulder_X.toDouble()
         ) * (180.0 / Math.PI)
         Log.d("Json_CENTER_Shoulder_angle", Json_CENTER_Shoulder_angle.toString());
 
+        if(ActiveCounter == 164){
+            ActiveCounter = 130
+            Log.d("ActiveCounter", ActiveCounter.toString() )
+        }else{
+            ActiveCounter++;
+            Log.d("ActiveCounter", ActiveCounter.toString() )
+        }
+
     }
 
-    fun poseEstimate(person: Person) {
+    fun FrameComparison(){
 
+        var feedbackFlag = 0
+        if(Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 15){
+            feedbackFlag+=2;
+        }
+        else if(Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 30){
+            feedbackFlag++;
+        }
+        else {
+
+        }
+        if(Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 20){
+            feedbackFlag+=2;
+        }
+        else if(Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 20){
+            feedbackFlag++;
+        }
+        else{
+
+        }
+
+        Log.d("팔 데이터 값 비교 : ", (LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle).toString()  )
+        Log.d("팔 데이터 값 비교 : ", (RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle).toString()  )
+
+
+        if(feedbackFlag>=2){
+            ActionFeedback = "Good"
+
+            Log.d("ActionFeedback : ",ActionFeedback)
+            feedbackFlag = 0
+        }
+//        else if(feedbackFlag>=2){
+//            ActionFeedback = "Normal"
+//
+//            Log.d("ActionFeedback : ",ActionFeedback)
+//            feedbackFlag = 0
+//        }
+        else {
+            ActionFeedback = "Bad"
+            Log.d("ActionFeedback : ",ActionFeedback)
+            feedbackFlag = 0
+        }
+//        LEFT_SIDE_Arm_angle
+//         LEFT_SIDE_Leg_angle
+//         RIGHT_SIDE_Arm_angle
+//        RIGHT_SIDE_Leg_angle
+//         LEFT_ForeArm_angle
+//         LEFT_Arm_angle
+//         LEFT_Body_angle
+//        LEFT_KneeUp_angle
+//         LEFT_KneeDown_angle
+//         RIGHT_ForeArm_angle
+//         RIGHT_Arm_angle
+//         RIGHT_Body_angle
+//         RIGHT_KneeUp_angle
+//         RIGHT_KneeDown_angle
+//         CENTER_Body_angle
+//         CENTER_Shoulder_angle
+    }
+
+
+
+    // 튜토리얼로 활용
+    fun poseEstimate(person: Person) {
         // 자세 평가
         var Estimate_Arm_Bound =
             person.keyPoints.get(9).score + person.keyPoints.get(7).score + person.keyPoints.get(5).score + person.keyPoints.get(
@@ -881,9 +999,9 @@ class Posenet(
 
         // 값 초기화
         estimate_LEFT_Arm = ""
-         estimate_RIGHT_Arm = ""
+        estimate_RIGHT_Arm = ""
 
-        // 부위별 score가 0.8 ~ 0.9
+        // 부위별 score가 0.8 ~ 0.9이면 프레임 평가
         if (Estimate_Arm_Bound > 5) {
             // 동작 상태에 따라 다르게
             if (ActionFlag == 0 || ActionFlag == 2) {
@@ -980,10 +1098,4 @@ class Posenet(
 
         }
     }
-
-
 }
-
-
-
-
