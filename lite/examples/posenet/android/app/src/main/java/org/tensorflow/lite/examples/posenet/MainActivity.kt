@@ -13,7 +13,7 @@ class MainActivity : AppCompatActivity() {
         val tutorial = findViewById<LinearLayout>(R.id.tutorial)
 
         tutorial.setOnClickListener({
-            val intent = Intent(this, PosenetActivity::class.java)
+            val intent = Intent(this, CameraActivity::class.java)
             startActivity(intent)
         })
 
