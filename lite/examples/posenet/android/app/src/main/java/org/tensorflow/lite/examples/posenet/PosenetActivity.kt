@@ -45,7 +45,7 @@ import org.tensorflow.lite.examples.posenet.lib.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
-
+import org.tensorflow.lite.examples.posenet.MainActivity
 
 class PosenetActivity :
   Fragment(),
@@ -477,7 +477,7 @@ class PosenetActivity :
   /** Set the paint color and size.    */
   private fun setPaint() {
     paint.color = Color.RED
-    paint.textSize = 60.0f
+    paint.textSize = 50.0f
     paint.strokeWidth = 8.0f
   }
 // private fun video() {
@@ -583,6 +583,42 @@ class PosenetActivity :
       }
     }
 
+    var Teststring = ""
+
+    if(ClickState == "sidejack 학습"){
+      if(ActionFlag == 0 || ActionFlag == 2){
+        Teststring = "차렷";
+      }
+      else if(ActionFlag == 1){
+        Teststring = "왼쪽";
+      }
+      else if(ActionFlag == 3){
+        Teststring = "오른쪽";
+      }
+      canvas.drawText(
+        "수행 동작 : $Teststring   /  수행 횟수 : $ActionCount",
+        (15.0f * widthRatio),
+        (30.0f * heightRatio),
+        paint
+      )
+      canvas.drawText(
+        "왼팔 : $estimate_LEFT_Arm / 오른팔 : $estimate_RIGHT_Arm",
+        (15.0f * widthRatio),
+        (50.0f * heightRatio),
+        paint
+      )
+
+    }
+    else if(ClickState == "sidejack 운동") {
+      canvas.drawText(
+        "수행 동작 : $ActionFeedback 수행 횟수 : $sidejackCount",
+        (15.0f * widthRatio),
+        (30.0f * heightRatio),
+        paint
+      )
+
+    }
+
     canvas.drawText(
       "Score: %.2f".format(person.score),
       (15.0f * widthRatio),
@@ -604,33 +640,17 @@ class PosenetActivity :
 
 
 
-    var Teststring = ""
-    var Teststring_1 = "hdgsd"
-    var Teststring_2 = "쿠쿠루"
-    Log.d("동작 플래그", ActionFlag.toString())
-
-//    if(ActionFlag == 0 || ActionFlag == 2){
-//      Teststring = "차렷";
-//    }
-//    else if(ActionFlag == 1){
-//      Teststring = "왼쪽";
-//    }
-//    else if(ActionFlag == 3){
-//      Teststring = "오른쪽";
-//    }
-
-
-
-
     // 실시간 피드백
     // Toast 메세지 띄우기 & 핸드폰 TalkBack 기능 키기
     // Toast.makeText(this.context,"$Teststring",Toast.LENGTH_LONG).show()
-    canvas.drawText(
-      "수행 동작 : $ActionFeedback 수행 횟수 : $sidejackCount",
-      (15.0f * widthRatio),
-      (30.0f * heightRatio),
-      paint
-    )
+
+    // 1/20일 수정전
+//    canvas.drawText(
+//      "수행 동작 : $ActionFeedback 수행 횟수 : $sidejackCount",
+//      (15.0f * widthRatio),
+//      (30.0f * heightRatio),
+//      paint
+//    )
 //    canvas.drawText(
 //      "수행 동작 : $ActionFeedback      수행 횟수 : $ActionCount",
 //      (15.0f * widthRatio),
