@@ -626,7 +626,7 @@ class PosenetActivity :
     // Toast 메세지 띄우기 & 핸드폰 TalkBack 기능 키기
     // Toast.makeText(this.context,"$Teststring",Toast.LENGTH_LONG).show()
     canvas.drawText(
-      "수행 동작 : $ActionFeedback ",
+      "수행 동작 : $ActionFeedback 수행 횟수 : $sidejackCount",
       (15.0f * widthRatio),
       (30.0f * heightRatio),
       paint

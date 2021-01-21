@@ -104,6 +104,7 @@ var estimate_LEFT_Arm = ""
 var estimate_RIGHT_Arm = ""
 
 var ActionFeedback = ""
+var sidejackCount = 0
 
 var tts: TextToSpeech? = null
 
@@ -550,16 +551,6 @@ class Posenet(
 //        tts.shutdown()
 //        // tts 중지
 
-
-        // 선생데이터 (JSON파일 프레임 데이터 추출)
-        jsonObjectsExample()
-
-
-
-
-
-
-
         // 프레임별 실시간데이터 & 선생데이터 비교
 
         // 실시간 데이터 점수가 낮을경우
@@ -574,7 +565,10 @@ class Posenet(
 //        }
 
 
-        if ((frameCounter % 5) == 0) {
+        // 선생데이터 (JSON파일 프레임 데이터 추출)
+        jsonObjectsExample()
+
+        if ((frameCounter % 10) == 0) {
             poseEstimate(person);
             FrameComparison();
         }
@@ -590,10 +584,6 @@ class Posenet(
     // Json data (선생 데이터) 가져오기
     @SuppressLint("LongLogTag")
     fun jsonObjectsExample() {
-
-
-
-
         // 파일 경로 세팅 완료
         var filePathFirst = "jsons/sidejack/"
         var filePathFinal = ".json"
@@ -631,20 +621,7 @@ class Posenet(
             Log.d("JSON_DATA", "y($i): $json_score")
         }
 
-        // 12가지 Json 각도 체크
 
-        var Json_LEFT_ForeArm: Int = 0
-        var Json_LEFT_Arm: Int = 0
-        var Json_LEFT_Body: Int = 0
-        var Json_LEFT_KneeUp: Int = 0
-        var Json_LEFT_KneeDown: Int = 0
-        var Json_Center_Body: Int = 0
-        var Json_Center_Shoulder: Int = 0
-        var Json_RIGHT_ForeArm: Int = 0
-        var Json_RIGHT_Arm: Int = 0
-        var Json_RIGHT_Body: Int = 0
-        var Json_RIGHT_KneeUp: Int = 0
-        var Json_RIGHT_KneeDown: Int = 0
 
 
         // JSON_LEFT_SIDE_Arm
@@ -904,8 +881,10 @@ class Posenet(
         ) * (180.0 / Math.PI)
         Log.d("Json_CENTER_Shoulder_angle", Json_CENTER_Shoulder_angle.toString());
 
-        if(ActiveCounter == 164){
+        if(ActiveCounter == 168){
+
             ActiveCounter = 130
+            sidejackCount++;
             Log.d("ActiveCounter", ActiveCounter.toString() )
         }else{
             ActiveCounter++;
@@ -992,7 +971,6 @@ class Posenet(
             ).score + person.keyPoints.get(16).score + person.keyPoints.get(14).score + person.keyPoints.get(
                 12
             ).score;
-
 
 
         Log.d("Estimate_Arm_Bound : ", Estimate_Arm_Bound.toString());
