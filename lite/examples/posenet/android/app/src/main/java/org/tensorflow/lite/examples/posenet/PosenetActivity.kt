@@ -47,6 +47,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import org.tensorflow.lite.examples.posenet.MainActivity
 
+
 class PosenetActivity :
   Fragment(),
   ActivityCompat.OnRequestPermissionsResultCallback {
@@ -611,7 +612,7 @@ class PosenetActivity :
     }
     else if(ClickState == "sidejack 운동") {
       canvas.drawText(
-        "수행 동작 : $ActionFeedback 수행 횟수 : $sidejackCount",
+        "수행 동작 : $ActionFeedback 수행 횟수 : $sidejackCount  운동 점수 : $Result_ActionScore ",
         (15.0f * widthRatio),
         (30.0f * heightRatio),
         paint
