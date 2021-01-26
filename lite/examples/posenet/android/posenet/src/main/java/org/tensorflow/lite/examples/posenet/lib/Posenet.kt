@@ -29,6 +29,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import android.widget.Toast
 import androidx.core.content.ContextCompat.getSystemService
 
 import org.json.JSONObject
@@ -119,6 +120,9 @@ var ActionScore = 0
 var Result_ActionScore = 0
 
 var tts: TextToSpeech? = null
+
+var start = SystemClock.currentThreadTimeMillis();
+
 
 class Position {
     var x: Int = 0
@@ -580,10 +584,7 @@ class Posenet(
         // 선생데이터 (JSON파일 프레임 데이터 추출)
         jsonObjectsExample()
 
-//        if ((frameCounter % 10) == 0) {
-//
-//
-//        }
+
 
         // 학습
         poseEstimate(person);
@@ -591,6 +592,13 @@ class Posenet(
         // 운동
         FrameComparison();
 
+
+        if (person.score >= 80){
+
+        }
+        else {
+
+        }
 
         frameCounter++;
 
@@ -904,6 +912,10 @@ class Posenet(
         }
 
         if(ActiveCounter == 168){
+            var end = SystemClock.currentThreadTimeMillis();
+            Log.d("운동 한세트 걸린시간 : ",(end - start).toString());
+            start = end;
+
             ActiveCounter = 130
             sidejackCount++;
             Log.d("ActiveCounter", ActiveCounter.toString() )
@@ -914,64 +926,72 @@ class Posenet(
 
     }
 
+    // 운동 프레임 비교
     fun FrameComparison(){
 
-
-        if(Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 15){
+        // 바운드 높게 줄수록 점수 높음
+        if(Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 10 || Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 10){
             ActionScore += 100;
         }
-        else if(Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 25){
+        else if(Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 25 || Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 25){
             ActionScore += 90;
         }
-        else if(Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 35){
+        else if(Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 40 || Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 40){
             ActionScore += 80;
         }
+//        else if(Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 30 || Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 30){
+//            ActionScore += 70;
+//        }
         else {
-            ActionScore += 60;
+            ActionScore += 50;
         }
-        if(Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 15){
-            ActionScore += 100;
-        }
-        else if(Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 25){
-            ActionScore += 90;
-        }
-        else if(Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 35){
-            ActionScore += 80;
-        }
-        else{
-            ActionScore += 60;
-        }
+
+//        if(Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 15){
+//            ActionScore += 100;
+//        }
+//        else if(Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 25){
+//            ActionScore += 90;
+//        }
+//        else if(Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 35){
+//            ActionScore += 80;
+//        }
+//        else{
+//            ActionScore += 60;
+//        }
 
         Log.d("팔 데이터 값 비교 : ", (LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle).toString()  )
         Log.d("팔 데이터 값 비교 : ", (RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle).toString()  )
 
 
-        Log.d("평가전 ActionScore : ", ActionScore.toString())
 
+        if ((frameCounter % 15) == 0)  {
 
-        if ((frameCounter % 10) == 0)  {
-            Result_ActionScore  = ActionScore / 20
-            if((ActionScore) >= 85 ){
-                Log.d("평가중 굳 ActionScore : ", (ActionScore/20).toString())
+            Log.d("ActionScore : ", ActionScore.toString())
+            Result_ActionScore  = ActionScore / 15
+            Log.d("Result_ActionScore : ", Result_ActionScore.toString())
+
+            if((Result_ActionScore) >= 90 ){
+                Log.d("평가중 굳 ActionScore : ", (Result_ActionScore).toString())
                 ActionFeedback = "Good"
                 Log.d("ActionFeedback : ",ActionFeedback)
                 ActionScore = 0
+                Result_ActionScore = 0
             }
-            else if((ActionScore) >= 70 ){
-                Log.d("평가중 노말 ActionScore : ", (ActionScore/20).toString())
+            else if((Result_ActionScore) >= 70 ){
+                Log.d("평가중 노말 ActionScore : ", (Result_ActionScore).toString())
                 ActionFeedback = "Normal"
                 Log.d("ActionFeedback : ",ActionFeedback)
                 ActionScore = 0
+                Result_ActionScore = 0
             }
             else {
-                Log.d("평가중 뱃 ActionScore : ", (ActionScore/20).toString())
+                Log.d("평가중 뱃 ActionScore : ", (Result_ActionScore).toString())
                 ActionFeedback = "Bad"
                 Log.d("ActionFeedback : ",ActionFeedback)
                 ActionScore = 0
+                Result_ActionScore = 0
             }
-
         }
-
     }
 
 

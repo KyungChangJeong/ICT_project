@@ -28,14 +28,17 @@ import android.media.Image
 import android.media.ImageReader
 import android.media.ImageReader.OnImageAvailableListener
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Process
 import android.util.Log
+import android.util.Range
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.*
+import android.widget.ImageView
 import android.widget.Toast
 import android.widget.VideoView
 import androidx.core.app.ActivityCompat
@@ -45,7 +48,6 @@ import org.tensorflow.lite.examples.posenet.lib.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
-import org.tensorflow.lite.examples.posenet.MainActivity
 
 
 class PosenetActivity :
@@ -145,6 +147,14 @@ class PosenetActivity :
 
   private var mediaPlayer: MediaPlayer?=null
 
+  // [210125]
+  private var jointView: SurfaceView? = null
+  private var jointHolder: SurfaceHolder? = null
+
+  // [210126]
+  private var imageView: ImageView ?= null
+
+
   /** [CameraDevice.StateCallback] is called when [CameraDevice] changes its state.   */
   private val stateCallback = object : CameraDevice.StateCallback() {
 
@@ -206,6 +216,19 @@ class PosenetActivity :
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     surfaceView = view.findViewById(R.id.surfaceView)
     surfaceHolder = surfaceView!!.holder
+
+    // [210122]
+    videoView = view.findViewById(R.id.videoView)
+    var videoUri = Uri.parse("android.resource://" + context!!.packageName + "/" + R.raw.sidejack3)
+    videoView!!.setVideoURI(videoUri)
+
+    // [210125]
+    jointView = view.findViewById(R.id.jointView)
+    jointHolder = jointView!!.holder
+    jointHolder!!.setFormat(PixelFormat.TRANSPARENT)
+
+    // [210126]
+    imageView = view.findViewById(R.id.imageView)
   }
 
   override fun onResume() {
@@ -434,6 +457,10 @@ class PosenetActivity :
         rotateMatrix, true
       )
       image.close()
+
+      // [210122]
+      videoView!!.start()
+
       processImage(rotatedBitmap)
     }
   }
@@ -481,21 +508,88 @@ class PosenetActivity :
     paint.textSize = 50.0f
     paint.strokeWidth = 8.0f
   }
-// private fun video() {
-//   videoView = view?.findViewById(R.id.videoView)
-//
-//   this.videoView?.setVideoPath("android.resource://org.tensorflow.lite.examples.posenet/"+R.raw.sidejack)
-//   this.videoView?.start()
-//   this.videoView?.setOnPreparedListener {
-//       m: MediaPlayer ->
-//     m.setOnVideoSizeChangedListener {
-//         m: MediaPlayer?, width: Int, height: Int ->
-//       val mediaController = MediaController(this.context!!)
-//       this.videoView?.setMediaController(mediaController)
-//       mediaController.setAnchorView(this.videoView)
-//     }
-// }
-//}
+  private fun drawTeacher(canvas: Canvas, person: Person, bitmap: Bitmap) {
+    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+    // Draw `bitmap` and `person` in square canvas.
+    val screenWidth: Int
+    val screenHeight: Int
+    val left: Int
+    val right: Int
+    val top: Int
+    val bottom: Int
+
+    screenWidth = canvas.width
+    screenHeight = canvas.height
+
+    left = 0
+    top = 0
+
+    right = left + screenWidth
+    bottom = top + screenHeight
+
+    setPaint()
+    canvas.drawBitmap(
+      bitmap,
+      Rect(0, 0, bitmap.width, bitmap.height),
+      Rect(left, top, right, bottom),
+      paint
+    )
+
+    // Draw
+    surfaceHolder!!.unlockCanvasAndPost(canvas)
+  }
+
+  private fun drawStudent(canvas: Canvas, person: Person, bitmap: Bitmap) {
+    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+    val screenWidth: Int
+    val screenHeight: Int
+    val left: Int
+    val top: Int
+    if (canvas.height > canvas.width) {
+      screenWidth = canvas.width
+      screenHeight = canvas.width
+      left = 0
+      top = (canvas.height - canvas.width) / 2
+    } else {
+      screenWidth = canvas.height
+      screenHeight = canvas.height
+      left = (canvas.width - canvas.height) / 2
+      top = 0
+    }
+    val widthRatio = screenWidth.toFloat() / MODEL_WIDTH
+    val heightRatio = screenHeight.toFloat() / MODEL_HEIGHT
+
+    setPaint()
+
+    // Draw key points over the image.
+    for (keyPoint in person.keyPoints) {
+      if (keyPoint.score > minConfidence) {
+        val position = keyPoint.position
+
+        val adjustedX: Float = position.x.toFloat() * widthRatio + left
+        val adjustedY: Float = position.y.toFloat() * heightRatio + top
+        canvas.drawCircle(adjustedX, adjustedY, circleRadius, paint)
+      }
+    }
+
+    for (line in bodyJoints) {
+      if (
+        (person.keyPoints[line.first.ordinal].score > minConfidence) and
+        (person.keyPoints[line.second.ordinal].score > minConfidence)
+      ) {
+        canvas.drawLine(
+          person.keyPoints[line.first.ordinal].position.x.toFloat() * widthRatio + left,
+          person.keyPoints[line.first.ordinal].position.y.toFloat() * heightRatio + top,
+          person.keyPoints[line.second.ordinal].position.x.toFloat() * widthRatio + left,
+          person.keyPoints[line.second.ordinal].position.y.toFloat() * heightRatio + top,
+          paint
+        )
+      }
+    }
+
+    // [210125]
+    jointHolder!!.unlockCanvasAndPost(canvas)
+  }
 
 
   /** Draw bitmap on Canvas.   */
@@ -684,9 +778,18 @@ class PosenetActivity :
     val scaledBitmap = Bitmap.createScaledBitmap(croppedBitmap, MODEL_WIDTH, MODEL_HEIGHT, true)
 
     // Perform inference.
+    // [210122]
     val person = posenet.estimateSinglePose(scaledBitmap)
     val canvas: Canvas = surfaceHolder!!.lockCanvas()
-    draw(canvas, person, scaledBitmap)
+    drawTeacher(canvas, person, scaledBitmap)
+
+    // [210125]
+    val jointCanvas: Canvas = jointHolder!!.lockCanvas()
+    val clearBG = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+    drawStudent(jointCanvas, person, clearBG)
+
+    // [210125]
+    // draw(canvas, person, scaledBitmap)
   }
 
   /**
@@ -720,6 +823,7 @@ class PosenetActivity :
             // When the session is ready, we start displaying the preview.
             captureSession = cameraCaptureSession
             try {
+
               // Auto focus should be continuous for camera preview.
               previewRequestBuilder!!.set(
                 CaptureRequest.CONTROL_AF_MODE,
@@ -751,10 +855,17 @@ class PosenetActivity :
   }
 
   private fun setAutoFlash(requestBuilder: CaptureRequest.Builder) {
+
+    // 프레임 속도 변경
+    val fpsRange = Range(0, 10)
+
     if (flashSupported) {
       requestBuilder.set(
         CaptureRequest.CONTROL_AE_MODE,
         CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH
+      )
+      requestBuilder.set(
+        CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,fpsRange
       )
     }
   }
