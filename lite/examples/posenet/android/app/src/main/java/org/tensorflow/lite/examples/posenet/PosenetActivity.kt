@@ -49,6 +49,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
 
+
 class PosenetActivity :
   Fragment(),
   ActivityCompat.OnRequestPermissionsResultCallback {
@@ -227,7 +228,7 @@ class PosenetActivity :
     jointHolder!!.setFormat(PixelFormat.TRANSPARENT)
 
     // [210126]
-    imageView = view.findViewById(R.id.imageView)
+//    imageView = view.findViewById(R.id.imageView)
 
   }
 
@@ -286,6 +287,7 @@ class PosenetActivity :
    */
   private fun setUpCameraOutputs() {
     val activity = activity
+
 //    video()
     val manager = activity!!.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     try {
@@ -471,8 +473,10 @@ class PosenetActivity :
       )
 
       // [210126]
-      imageView!!.printImage()
+//      imageView!!.printImage()
 
+      // [210128]
+      kindAction = ClickState;
     }
   }
 
@@ -572,6 +576,7 @@ class PosenetActivity :
 
     setPaint()
 
+
     // Draw key points over the image.
     for (keyPoint in person.keyPoints) {
       if (keyPoint.score > minConfidence) {
@@ -597,6 +602,13 @@ class PosenetActivity :
         )
       }
     }
+
+    canvas.drawText(
+      "결과: $ActionFeedback ",
+      (50.0f * widthRatio),
+      (20.0f * heightRatio),
+      paint
+    )
 
     // [210125]
     jointHolder!!.unlockCanvasAndPost(canvas)
@@ -751,23 +763,24 @@ class PosenetActivity :
   }
 }
 
-private fun ImageView.printImage() {
-  // [210126]
-  when (ActionFeedback) {
-    "Good" -> {
-      Log.d("ActionFeedback",ActionFeedback)
-      imageView!!.setImageResource(R.drawable.good)
-    }
-    "Normal" -> {
-      Log.d("ActionFeedback",ActionFeedback)
-      imageView!!.setImageResource(R.drawable.normal)
-    }
-    "Bad" -> {
-      Log.d("ActionFeedback",ActionFeedback)
-      imageView!!.setImageResource(R.drawable.bad)
-    }
-    else -> {
-      imageView!!.isInvisible;
-    }
-  }
-}
+//private fun ImageView.printImage() {
+//  // [210126]
+//  when (ActionFeedback) {
+//    "Good" -> {
+//      Log.d("ActionFeedback",ActionFeedback)
+//      imageView!!.setImageResource(R.drawable.good)
+//    }
+//    "Normal" -> {
+//      Log.d("ActionFeedback",ActionFeedback)
+//      imageView!!.setImageResource(R.drawable.normal)
+//    }
+//    "Bad" -> {
+//      Log.d("ActionFeedback",ActionFeedback)
+//      imageView!!.setImageResource(R.drawable.bad)
+//    }
+//    else -> {
+//      imageView!!.isInvisible;
+//    }
+//
+//  }
+//}

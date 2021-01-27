@@ -15,7 +15,7 @@
  */
 package org.tensorflow.lite.examples.posenet.lib
 
-
+import org.tensorflow.lite.examples.posenet.*
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.VIBRATOR_SERVICE
@@ -29,8 +29,6 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.speech.tts.TextToSpeech
 import android.util.Log
-import android.widget.Toast
-import androidx.core.content.ContextCompat.getSystemService
 
 import org.json.JSONObject
 import org.tensorflow.lite.Interpreter
@@ -45,6 +43,7 @@ import java.nio.channels.FileChannel
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.exp
+
 import org.tensorflow.lite.examples.posenet.*
 
 enum class BodyPart {
@@ -112,6 +111,8 @@ var ActionFlag: Int = 0
 var ActionCount: Int = 0
 var estimate_LEFT_Arm = ""
 var estimate_RIGHT_Arm = ""
+
+var kindAction = ""
 
 var ActionFeedback = ""
 var sidejackCount = 0
@@ -378,9 +379,6 @@ class Posenet(
         //    16. RIGHT_ANKLE
 
 
-
-
-
         // 값 수정 X
         person.keyPoints = keypointList.toList()
 
@@ -391,163 +389,198 @@ class Posenet(
 //        Log.d("person.keyPoints", person.keyPoints.get(0).position.y.toString());
 //        Log.d("person.keyPoints_score", person.keyPoints.get(0).score.toString());
 
-        person.score = totalScore / numKeypoints
-        //    Log.d("person.score", person.score.toString());
 
+        person.score = totalScore / numKeypoints
 
         // 실시간 데이터 각도 계산
+        fun realtime_dataCal() {
+            // LEFT_SIDE_Arm
+            var LEFT_SIDE_Arm_dy =
+                person.keyPoints.get(9).position.y - person.keyPoints.get(5).position.y
+            var LEFT_SIDE_Arm_dx =
+                person.keyPoints.get(9).position.x - person.keyPoints.get(5).position.x
+            LEFT_SIDE_Arm_angle =
+                Math.atan2(
+                    LEFT_SIDE_Arm_dy.toDouble(),
+                    LEFT_SIDE_Arm_dx.toDouble()
+                ) * (180.0 / Math.PI)
 
-        // LEFT_SIDE_Arm
-        var LEFT_SIDE_Arm_dy =
-            person.keyPoints.get(9).position.y - person.keyPoints.get(5).position.y
-        var LEFT_SIDE_Arm_dx =
-            person.keyPoints.get(9).position.x - person.keyPoints.get(5).position.x
-        LEFT_SIDE_Arm_angle =
-            Math.atan2(LEFT_SIDE_Arm_dy.toDouble(), LEFT_SIDE_Arm_dx.toDouble()) * (180.0 / Math.PI)
-//        Log.d("LEFT_SIDE_Arm", LEFT_SIDE_Arm_angle.toString());
 
-        // LEFT_SIDE_Leg
-        var LEFT_SIDE_Leg_dy =
-            person.keyPoints.get(15).position.y - person.keyPoints.get(11).position.y
-        var LEFT_SIDE_Leg_dx =
-            person.keyPoints.get(15).position.x - person.keyPoints.get(11).position.x
-        LEFT_SIDE_Leg_angle =
-            Math.atan2(LEFT_SIDE_Leg_dy.toDouble(), LEFT_SIDE_Leg_dx.toDouble()) * (180.0 / Math.PI)
-//        Log.d("LEFT_SIDE_Leg", LEFT_SIDE_Leg_angle.toString());
+            // LEFT_SIDE_Leg
+            var LEFT_SIDE_Leg_dy =
+                person.keyPoints.get(15).position.y - person.keyPoints.get(11).position.y
+            var LEFT_SIDE_Leg_dx =
+                person.keyPoints.get(15).position.x - person.keyPoints.get(11).position.x
+            LEFT_SIDE_Leg_angle =
+                Math.atan2(
+                    LEFT_SIDE_Leg_dy.toDouble(),
+                    LEFT_SIDE_Leg_dx.toDouble()
+                ) * (180.0 / Math.PI)
 
-        // RIGHT_SIDE_Arm
-        var RIGHT_SIDE_Arm_dy =
-            person.keyPoints.get(6).position.y - person.keyPoints.get(10).position.y
-        var RIGHT_SIDE_Arm_dx =
-            person.keyPoints.get(6).position.x - person.keyPoints.get(10).position.x
-        RIGHT_SIDE_Arm_angle =
-            Math.atan2(
-                RIGHT_SIDE_Arm_dy.toDouble(),
-                RIGHT_SIDE_Arm_dx.toDouble()
+
+            // RIGHT_SIDE_Arm
+            var RIGHT_SIDE_Arm_dy =
+                person.keyPoints.get(6).position.y - person.keyPoints.get(10).position.y
+            var RIGHT_SIDE_Arm_dx =
+                person.keyPoints.get(6).position.x - person.keyPoints.get(10).position.x
+            RIGHT_SIDE_Arm_angle =
+                Math.atan2(
+                    RIGHT_SIDE_Arm_dy.toDouble(),
+                    RIGHT_SIDE_Arm_dx.toDouble()
+                ) * (180.0 / Math.PI)
+
+
+            // RIGHT_SIDE_Leg
+            var RIGHT_SIDE_Leg_dy =
+                person.keyPoints.get(16).position.y - person.keyPoints.get(12).position.y
+            var RIGHT_SIDE_Leg_dx =
+                person.keyPoints.get(16).position.x - person.keyPoints.get(12).position.x
+            RIGHT_SIDE_Leg_angle =
+                Math.atan2(
+                    RIGHT_SIDE_Leg_dy.toDouble(),
+                    RIGHT_SIDE_Leg_dx.toDouble()
+                ) * (180.0 / Math.PI)
+
+
+            // LEFT_ForeArm
+            var LEFT_ForeArm_dy =
+                person.keyPoints.get(9).position.y - person.keyPoints.get(7).position.y
+            var LEFT_ForeArm_dx =
+                person.keyPoints.get(9).position.x - person.keyPoints.get(7).position.x
+            LEFT_ForeArm_angle =
+                Math.atan2(
+                    LEFT_ForeArm_dy.toDouble(),
+                    LEFT_ForeArm_dx.toDouble()
+                ) * (180.0 / Math.PI)
+
+
+            // LEFT_Arm
+            var LEFT_Arm_dy =
+                person.keyPoints.get(7).position.y - person.keyPoints.get(5).position.y
+            var LEFT_Arm_dx =
+                person.keyPoints.get(7).position.x - person.keyPoints.get(5).position.x
+            LEFT_Arm_angle =
+                Math.atan2(LEFT_Arm_dy.toDouble(), LEFT_Arm_dx.toDouble()) * (180.0 / Math.PI)
+
+
+            // LEFT_Body
+            var LEFT_Body_dy =
+                person.keyPoints.get(5).position.y - person.keyPoints.get(11).position.y
+            var LEFT_Body_dx =
+                person.keyPoints.get(5).position.x - person.keyPoints.get(11).position.x
+            LEFT_Body_angle =
+                Math.atan2(LEFT_Body_dy.toDouble(), LEFT_Body_dx.toDouble()) * (180.0 / Math.PI)
+
+
+            // LEFT_KneeUp
+            var LEFT_KneeUp_dy =
+                person.keyPoints.get(11).position.y - person.keyPoints.get(13).position.y
+            var LEFT_KneeUp_dx =
+                person.keyPoints.get(11).position.x - person.keyPoints.get(13).position.x
+            LEFT_KneeUp_angle =
+                Math.atan2(LEFT_KneeUp_dy.toDouble(), LEFT_KneeUp_dx.toDouble()) * (180.0 / Math.PI)
+
+
+            // LEFT_KneeDown
+            var LEFT_KneeDown_dy =
+                person.keyPoints.get(13).position.y - person.keyPoints.get(15).position.y
+            var LEFT_KneeDown_dx =
+                person.keyPoints.get(13).position.x - person.keyPoints.get(15).position.x
+            LEFT_KneeDown_angle =
+                Math.atan2(
+                    LEFT_KneeDown_dy.toDouble(),
+                    LEFT_KneeDown_dx.toDouble()
+                ) * (180.0 / Math.PI)
+
+            // RIGHT_ForeArm
+            var RIGHT_ForeArm_dy =
+                person.keyPoints.get(10).position.y - person.keyPoints.get(8).position.y
+            var RIGHT_ForeArm_dx =
+                person.keyPoints.get(10).position.x - person.keyPoints.get(8).position.x
+            RIGHT_ForeArm_angle =
+                Math.atan2(
+                    RIGHT_ForeArm_dy.toDouble(),
+                    RIGHT_ForeArm_dx.toDouble()
+                ) * (180.0 / Math.PI)
+
+
+            // RIGHT_Arm
+            var RIGHT_Arm_dy =
+                person.keyPoints.get(8).position.y - person.keyPoints.get(6).position.y
+            var RIGHT_Arm_dx =
+                person.keyPoints.get(8).position.x - person.keyPoints.get(6).position.x
+            RIGHT_Arm_angle =
+                Math.atan2(RIGHT_Arm_dy.toDouble(), RIGHT_Arm_dx.toDouble()) * (180.0 / Math.PI)
+
+
+            // RIGHT_Body
+            var RIGHT_Body_dy =
+                person.keyPoints.get(6).position.y - person.keyPoints.get(12).position.y
+            var RIGHT_Body_dx =
+                person.keyPoints.get(6).position.x - person.keyPoints.get(12).position.x
+            RIGHT_Body_angle =
+                Math.atan2(RIGHT_Body_dy.toDouble(), RIGHT_Body_dx.toDouble()) * (180.0 / Math.PI)
+
+
+            // RIGHT_KneeUp
+            var RIGHT_KneeUp_dy =
+                person.keyPoints.get(12).position.y - person.keyPoints.get(14).position.y
+            var RIGHT_KneeUp_dx =
+                person.keyPoints.get(12).position.x - person.keyPoints.get(14).position.x
+            RIGHT_KneeUp_angle =
+                Math.atan2(
+                    RIGHT_KneeUp_dy.toDouble(),
+                    RIGHT_KneeUp_dx.toDouble()
+                ) * (180.0 / Math.PI)
+
+            // RIGHT_KneeDown
+            var RIGHT_KneeDown_dy =
+                person.keyPoints.get(14).position.y - person.keyPoints.get(16).position.y
+            var RIGHT_KneeDown_dx =
+                person.keyPoints.get(14).position.x - person.keyPoints.get(16).position.x
+            RIGHT_KneeDown_angle = Math.atan2(
+                RIGHT_KneeDown_dy.toDouble(),
+                RIGHT_KneeDown_dx.toDouble()
             ) * (180.0 / Math.PI)
-//        Log.d("RIGHT_SIDE_Arm", RIGHT_SIDE_Arm_angle.toString());
 
-        // RIGHT_SIDE_Leg
-        var RIGHT_SIDE_Leg_dy =
-            person.keyPoints.get(16).position.y - person.keyPoints.get(12).position.y
-        var RIGHT_SIDE_Leg_dx =
-            person.keyPoints.get(16).position.x - person.keyPoints.get(12).position.x
-        RIGHT_SIDE_Leg_angle =
-            Math.atan2(
-                RIGHT_SIDE_Leg_dy.toDouble(),
-                RIGHT_SIDE_Leg_dx.toDouble()
+            // CENTER_Body
+            var CENTER_Body_dy =
+                person.keyPoints.get(5).position.y - person.keyPoints.get(6).position.y
+            var CENTER_Body_dx =
+                person.keyPoints.get(5).position.x - person.keyPoints.get(6).position.x
+            CENTER_Body_angle =
+                Math.atan2(CENTER_Body_dy.toDouble(), CENTER_Body_dx.toDouble()) * (180.0 / Math.PI)
+
+            // CENTER_Shoulder
+            var CENTER_Shoulder_dy =
+                person.keyPoints.get(11).position.y - person.keyPoints.get(12).position.y
+            var CENTER_Shoulder_dx =
+                person.keyPoints.get(11).position.x - person.keyPoints.get(12).position.x
+            CENTER_Shoulder_angle = Math.atan2(
+                CENTER_Shoulder_dy.toDouble(),
+                CENTER_Shoulder_dx.toDouble()
             ) * (180.0 / Math.PI)
-//        Log.d("RIGHT_SIDE_Leg", RIGHT_SIDE_Leg_angle.toString());
-
-
-        // LEFT_ForeArm
-        var LEFT_ForeArm_dy =
-            person.keyPoints.get(9).position.y - person.keyPoints.get(7).position.y
-        var LEFT_ForeArm_dx =
-            person.keyPoints.get(9).position.x - person.keyPoints.get(7).position.x
-        LEFT_ForeArm_angle =
-            Math.atan2(LEFT_ForeArm_dy.toDouble(), LEFT_ForeArm_dx.toDouble()) * (180.0 / Math.PI)
-//        Log.d("LEFT_ForeArm", LEFT_ForeArm_angle.toString());
-
-        // LEFT_Arm
-        var LEFT_Arm_dy = person.keyPoints.get(7).position.y - person.keyPoints.get(5).position.y
-        var LEFT_Arm_dx = person.keyPoints.get(7).position.x - person.keyPoints.get(5).position.x
-        LEFT_Arm_angle =
-            Math.atan2(LEFT_Arm_dy.toDouble(), LEFT_Arm_dx.toDouble()) * (180.0 / Math.PI)
-//        Log.d("LEFT_Arm", LEFT_Arm_angle.toString());
-
-        // LEFT_Body
-        var LEFT_Body_dy = person.keyPoints.get(5).position.y - person.keyPoints.get(11).position.y
-        var LEFT_Body_dx = person.keyPoints.get(5).position.x - person.keyPoints.get(11).position.x
-        LEFT_Body_angle =
-            Math.atan2(LEFT_Body_dy.toDouble(), LEFT_Body_dx.toDouble()) * (180.0 / Math.PI)
-//        Log.d("LEFT_Body", LEFT_Body_angle.toString());
-
-        // LEFT_KneeUp
-        var LEFT_KneeUp_dy =
-            person.keyPoints.get(11).position.y - person.keyPoints.get(13).position.y
-        var LEFT_KneeUp_dx =
-            person.keyPoints.get(11).position.x - person.keyPoints.get(13).position.x
-        LEFT_KneeUp_angle =
-            Math.atan2(LEFT_KneeUp_dy.toDouble(), LEFT_KneeUp_dx.toDouble()) * (180.0 / Math.PI)
-//        Log.d("LEFT_KneeUp", LEFT_KneeUp_angle.toString());
-
-        // LEFT_KneeDown
-        var LEFT_KneeDown_dy =
-            person.keyPoints.get(13).position.y - person.keyPoints.get(15).position.y
-        var LEFT_KneeDown_dx =
-            person.keyPoints.get(13).position.x - person.keyPoints.get(15).position.x
-        LEFT_KneeDown_angle =
-            Math.atan2(LEFT_KneeDown_dy.toDouble(), LEFT_KneeDown_dx.toDouble()) * (180.0 / Math.PI)
-//        Log.d("LEFT_KneeDown", LEFT_KneeDown_angle.toString());
-
-        // RIGHT_ForeArm
-        var RIGHT_ForeArm_dy =
-            person.keyPoints.get(10).position.y - person.keyPoints.get(8).position.y
-        var RIGHT_ForeArm_dx =
-            person.keyPoints.get(10).position.x - person.keyPoints.get(8).position.x
-        RIGHT_ForeArm_angle =
-            Math.atan2(RIGHT_ForeArm_dy.toDouble(), RIGHT_ForeArm_dx.toDouble()) * (180.0 / Math.PI)
-//        Log.d("RIGHT_ForeArm", RIGHT_ForeArm_angle.toString());
-
-        // RIGHT_Arm
-        var RIGHT_Arm_dy = person.keyPoints.get(8).position.y - person.keyPoints.get(6).position.y
-        var RIGHT_Arm_dx = person.keyPoints.get(8).position.x - person.keyPoints.get(6).position.x
-        RIGHT_Arm_angle =
-            Math.atan2(RIGHT_Arm_dy.toDouble(), RIGHT_Arm_dx.toDouble()) * (180.0 / Math.PI)
-//        Log.d("RIGHT_Arm", RIGHT_Arm_angle.toString());
-
-        // RIGHT_Body
-        var RIGHT_Body_dy = person.keyPoints.get(6).position.y - person.keyPoints.get(12).position.y
-        var RIGHT_Body_dx = person.keyPoints.get(6).position.x - person.keyPoints.get(12).position.x
-        RIGHT_Body_angle =
-            Math.atan2(RIGHT_Body_dy.toDouble(), RIGHT_Body_dx.toDouble()) * (180.0 / Math.PI)
-//        Log.d("RIGHT_Body", RIGHT_Body_angle.toString());
-
-        // RIGHT_KneeUp
-        var RIGHT_KneeUp_dy =
-            person.keyPoints.get(12).position.y - person.keyPoints.get(14).position.y
-        var RIGHT_KneeUp_dx =
-            person.keyPoints.get(12).position.x - person.keyPoints.get(14).position.x
-        RIGHT_KneeUp_angle =
-            Math.atan2(RIGHT_KneeUp_dy.toDouble(), RIGHT_KneeUp_dx.toDouble()) * (180.0 / Math.PI)
-//        Log.d("RIGHT_KneeUp", RIGHT_KneeUp_angle.toString());
-
-        // RIGHT_KneeDown
-        var RIGHT_KneeDown_dy =
-            person.keyPoints.get(14).position.y - person.keyPoints.get(16).position.y
-        var RIGHT_KneeDown_dx =
-            person.keyPoints.get(14).position.x - person.keyPoints.get(16).position.x
-        RIGHT_KneeDown_angle = Math.atan2(
-            RIGHT_KneeDown_dy.toDouble(),
-            RIGHT_KneeDown_dx.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("RIGHT_KneeDown", RIGHT_KneeDown_angle.toString());
-
-        // CENTER_Body
-        var CENTER_Body_dy = person.keyPoints.get(5).position.y - person.keyPoints.get(6).position.y
-        var CENTER_Body_dx = person.keyPoints.get(5).position.x - person.keyPoints.get(6).position.x
-        CENTER_Body_angle =
-            Math.atan2(CENTER_Body_dy.toDouble(), CENTER_Body_dx.toDouble()) * (180.0 / Math.PI)
-//        Log.d("CENTER_Body", CENTER_Body_angle.toString());
-
-        // CENTER_Shoulder
-        var CENTER_Shoulder_dy =
-            person.keyPoints.get(11).position.y - person.keyPoints.get(12).position.y
-        var CENTER_Shoulder_dx =
-            person.keyPoints.get(11).position.x - person.keyPoints.get(12).position.x
-        CENTER_Shoulder_angle = Math.atan2(
-            CENTER_Shoulder_dy.toDouble(),
-            CENTER_Shoulder_dx.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("CENTER_Shoulder", CENTER_Shoulder_angle.toString());
-
-
+            //        Log.d("LEFT_SIDE_Arm", LEFT_SIDE_Arm_angle.toString());
+            //        Log.d("LEFT_SIDE_Leg", LEFT_SIDE_Leg_angle.toString());
+            //        Log.d("RIGHT_SIDE_Arm", RIGHT_SIDE_Arm_angle.toString());
+            //        Log.d("RIGHT_SIDE_Leg", RIGHT_SIDE_Leg_angle.toString());
+            //        Log.d("LEFT_ForeArm", LEFT_ForeArm_angle.toString());
+            //        Log.d("LEFT_Arm", LEFT_Arm_angle.toString());
+            //        Log.d("LEFT_Body", LEFT_Body_angle.toString());
+            //        Log.d("LEFT_KneeUp", LEFT_KneeUp_angle.toString());
+            //        Log.d("LEFT_KneeDown", LEFT_KneeDown_angle.toString());
+            //        Log.d("RIGHT_ForeArm", RIGHT_ForeArm_angle.toString());
+            //        Log.d("RIGHT_Arm", RIGHT_Arm_angle.toString());
+            //        Log.d("RIGHT_Body", RIGHT_Body_angle.toString());
+            //        Log.d("RIGHT_KneeUp", RIGHT_KneeUp_angle.toString());
+            //        Log.d("RIGHT_KneeDown", RIGHT_KneeDown_angle.toString());
+            //        Log.d("CENTER_Body", CENTER_Body_angle.toString());
+            //        Log.d("CENTER_Shoulder", CENTER_Shoulder_angle.toString());
+        }
 
 
 //        //tts 생성
-//
-//
+
 //        val tts = TextToSpeech(this.context) {
 //            if (it == TextToSpeech.SUCCESS) {
 //                val result = tts?.setLanguage(Locale.KOREAN)
@@ -567,48 +600,30 @@ class Posenet(
 //        tts.shutdown()
 //        // tts 중지
 
-        // 프레임별 실시간데이터 & 선생데이터 비교
-
-        // 실시간 데이터 점수가 낮을경우
-        // 한 프레임 비교 안하도록
-//        Log.d("totalScore", totalScore.toString())
-//        if (totalScore >= 90) {
-//            // 10Frame 별로 실시간데이터 평가
-//
-//        }
-//        else{
-//
-//        }
-
-
-        // 선생데이터 (JSON파일 프레임 데이터 추출)
-        jsonObjectsExample()
-
-
-
-        // 학습
-        poseEstimate(person);
-
-        // 운동
-        FrameComparison();
-
-
-
-
-//        if((frameCounter %10) == 0) {
-//
-//            var frame_end = SystemClock.currentThreadTimeMillis();
-//            Log.d("운동 한세트 걸린시간 : ",(frame_end - frame_start).toString());
-//            frame_start = frame_end;
-//
-//        }
-
-        // 사람 점수가 잘 나오면 평가 시작
-        if (person.score >= 80){
-
+        if(kindAction == "sidejack 학습"){
+            // 학습
+            poseEstimate(person)
         }
-        else {
 
+        else if(kindAction == "sidejack 운동"){
+
+            Log.d("person.score : ", person.score.toString())
+            // 사람 점수가 잘 나오면 평가 시작
+            if (person.score >= 0.7) {
+                // 리얼 타임 데이터 추출
+                realtime_dataCal();
+
+                // 프레임별 실시간데이터 & 선생데이터 비교
+                // 선생데이터 (JSON파일 프레임 데이터 추출)
+                jsonObjectsExample()
+
+                // 운동
+                FrameComparison();
+
+            } else {
+                ActionFeedback = "Bad"
+                Result_ActionScore = 0
+            }
         }
 
         frameCounter++;
@@ -625,7 +640,7 @@ class Posenet(
         var filePathFinal = ".json"
 
         // 실제
-        var fileJsonPath = filePathFirst+ ActiveCounter + filePathFinal
+        var fileJsonPath = filePathFirst + ActiveCounter + filePathFinal
 //        Log.d("fileJsonPath :",fileJsonPath)
         // test용
 //        var fileJsonPath = filePathFirst + 3 + filePathFinal
@@ -633,7 +648,7 @@ class Posenet(
 //        Log.d("JSON_FRAME_COUNTER", ActiveCounter.toString());
 //        Log.d("파일 경로 확인", fileJsonPath)
 
-        // open 해결 => 0 ~ 268 Frame의 정보 가져오도록
+        // open 해결 => 0 ~ 150 Frame의 정보 가져오도록
 
         val inputStream = context.assets.open("$fileJsonPath")
         val br = BufferedReader(InputStreamReader(inputStream))
@@ -658,348 +673,374 @@ class Posenet(
 //            Log.d("JSON_DATA", "y($i): $json_y")
 //            Log.d("JSON_DATA", "y($i): $json_score")
         }
+        fun teacher_dataCal(){
+            // JSON_LEFT_SIDE_Arm
+            val JSON_LEFT_SIDE_Arm_X =
+                jArray.getJSONObject(9).getInt("x") - jArray.getJSONObject(5).getInt(
+                    "x"
+                )
+            val JSON_LEFT_SIDE_Arm_Y =
+                jArray.getJSONObject(9).getInt("y") - jArray.getJSONObject(5).getInt(
+                    "y"
+                )
+            JSON_LEFT_SIDE_Arm_angle = Math.atan2(
+                JSON_LEFT_SIDE_Arm_Y.toDouble(),
+                JSON_LEFT_SIDE_Arm_X.toDouble()
+            ) * (180.0 / Math.PI)
+
+            // JSON_LEFT_SIDE_Leg
+            val JSON_LEFT_SIDE_Leg_X =
+                jArray.getJSONObject(15).getInt("x") - jArray.getJSONObject(11).getInt(
+                    "x"
+                )
+            val JSON_LEFT_SIDE_Leg_Y =
+                jArray.getJSONObject(15).getInt("y") - jArray.getJSONObject(11).getInt(
+                    "y"
+                )
+            JSON_LEFT_SIDE_Leg_angle = Math.atan2(
+                JSON_LEFT_SIDE_Leg_Y.toDouble(),
+                JSON_LEFT_SIDE_Leg_X.toDouble()
+            ) * (180.0 / Math.PI)
+
+            // JSON_RIGHT_SIDE_Arm
+            val JSON_RIGHT_SIDE_Arm_X =
+                jArray.getJSONObject(6).getInt("x") - jArray.getJSONObject(10).getInt(
+                    "x"
+                )
+            val JSON_RIGHT_SIDE_Arm_Y =
+                jArray.getJSONObject(6).getInt("y") - jArray.getJSONObject(10).getInt(
+                    "y"
+                )
+            JSON_RIGHT_SIDE_Arm_angle = Math.atan2(
+                JSON_RIGHT_SIDE_Arm_Y.toDouble(),
+                JSON_RIGHT_SIDE_Arm_X.toDouble()
+            ) * (180.0 / Math.PI)
+
+            // JSON_RIGHT_SIDE_Leg
+            val JSON_RIGHT_SIDE_Leg_X =
+                jArray.getJSONObject(16).getInt("x") - jArray.getJSONObject(12).getInt(
+                    "x"
+                )
+            val JSON_RIGHT_SIDE_Leg_Y =
+                jArray.getJSONObject(16).getInt("y") - jArray.getJSONObject(12).getInt(
+                    "y"
+                )
+            JSON_RIGHT_SIDE_Leg_angle = Math.atan2(
+                JSON_RIGHT_SIDE_Leg_Y.toDouble(),
+                JSON_RIGHT_SIDE_Leg_X.toDouble()
+            ) * (180.0 / Math.PI)
+
+            // Json_Left_ForeArm
+            val Json_LEFT_ForeArm_X =
+                jArray.getJSONObject(9).getInt("x") - jArray.getJSONObject(7).getInt(
+                    "x"
+                )
+
+            val Json_LEFT_ForeArm_Y =
+                jArray.getJSONObject(9).getInt("y") - jArray.getJSONObject(7).getInt(
+                    "y"
+                )
+
+            Json_LEFT_ForeArm_angle = Math.atan2(
+                Json_LEFT_ForeArm_Y.toDouble(),
+                Json_LEFT_ForeArm_X.toDouble()
+            ) * (180.0 / Math.PI)
+
+            // Json_LEFT_Arm
+            val Json_LEFT_Arm_X =
+                jArray.getJSONObject(7).getInt("x") - jArray.getJSONObject(5).getInt("x")
+
+            val Json_LEFT_Arm_Y =
+                jArray.getJSONObject(7).getInt("y") - jArray.getJSONObject(5).getInt("y")
+
+            Json_LEFT_Arm_angle =
+                Math.atan2(Json_LEFT_Arm_Y.toDouble(), Json_LEFT_Arm_X.toDouble()) * (180.0 / Math.PI)
 
 
+            // Json_LEFT_Body
+            val Json_LEFT_Body_X =
+                jArray.getJSONObject(5).getInt("x") - jArray.getJSONObject(11).getInt(
+                    "x"
+                )
+
+            val Json_LEFT_Body_Y =
+                jArray.getJSONObject(5).getInt("y") - jArray.getJSONObject(11).getInt(
+                    "y"
+                )
+
+            Json_LEFT_Body_angle = Math.atan2(
+                Json_LEFT_Body_Y.toDouble(),
+                Json_LEFT_Body_X.toDouble()
+            ) * (180.0 / Math.PI)
+
+            // Json_LEFT_KneeUp
+            val Json_LEFT_KneeUp_X =
+                jArray.getJSONObject(11).getInt("x") - jArray.getJSONObject(13).getInt(
+                    "x"
+                )
+
+            val Json_LEFT_KneeUp_Y =
+                jArray.getJSONObject(11).getInt("y") - jArray.getJSONObject(13).getInt(
+                    "y"
+                )
+
+            Json_LEFT_KneeUp_angle = Math.atan2(
+                Json_LEFT_KneeUp_Y.toDouble(),
+                Json_LEFT_KneeUp_X.toDouble()
+            ) * (180.0 / Math.PI)
+
+            // Json_LEFT_KneeDown
+            val Json_LEFT_KneeDown_X =
+                jArray.getJSONObject(13).getInt("x") - jArray.getJSONObject(15).getInt(
+                    "x"
+                )
+
+            val Json_LEFT_KneeDown_Y =
+                jArray.getJSONObject(13).getInt("y") - jArray.getJSONObject(15).getInt(
+                    "y"
+                )
+
+            Json_LEFT_KneeDown_angle = Math.atan2(
+                Json_LEFT_KneeDown_Y.toDouble(),
+                Json_LEFT_KneeDown_X.toDouble()
+            ) * (180.0 / Math.PI)
+
+            // Json_RIGHT_ForeArm
+            val Json_RIGHT_ForeArm_X =
+                jArray.getJSONObject(10).getInt("x") - jArray.getJSONObject(8).getInt(
+                    "x"
+                )
+
+            val Json_RIGHT_ForeArm_Y =
+                jArray.getJSONObject(10).getInt("y") - jArray.getJSONObject(8).getInt(
+                    "y"
+                )
+
+            Json_RIGHT_ForeArm_angle = Math.atan2(
+                Json_RIGHT_ForeArm_Y.toDouble(),
+                Json_RIGHT_ForeArm_X.toDouble()
+            ) * (180.0 / Math.PI)
 
 
-        // JSON_LEFT_SIDE_Arm
-        val JSON_LEFT_SIDE_Arm_X =
-            jArray.getJSONObject(9).getInt("x") - jArray.getJSONObject(5).getInt(
+            // Json_RIGHT_Arm
+            val Json_RIGHT_Arm_X = jArray.getJSONObject(8).getInt("x") - jArray.getJSONObject(6).getInt(
                 "x"
             )
-        val JSON_LEFT_SIDE_Arm_Y =
-            jArray.getJSONObject(9).getInt("y") - jArray.getJSONObject(5).getInt(
+
+            val Json_RIGHT_Arm_Y = jArray.getJSONObject(8).getInt("y") - jArray.getJSONObject(6).getInt(
                 "y"
             )
-        JSON_LEFT_SIDE_Arm_angle = Math.atan2(
-            JSON_LEFT_SIDE_Arm_Y.toDouble(),
-            JSON_LEFT_SIDE_Arm_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("JSON_LEFT_SIDE_Arm_angle", JSON_LEFT_SIDE_Arm_angle.toString());
 
-        // JSON_LEFT_SIDE_Leg
-        val JSON_LEFT_SIDE_Leg_X =
-            jArray.getJSONObject(15).getInt("x") - jArray.getJSONObject(11).getInt(
-                "x"
-            )
-        val JSON_LEFT_SIDE_Leg_Y =
-            jArray.getJSONObject(15).getInt("y") - jArray.getJSONObject(11).getInt(
-                "y"
-            )
-        JSON_LEFT_SIDE_Leg_angle = Math.atan2(
-            JSON_LEFT_SIDE_Leg_Y.toDouble(),
-            JSON_LEFT_SIDE_Leg_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("JSON_LEFT_SIDE_Leg_angle", JSON_LEFT_SIDE_Leg_angle.toString());
-
-        // JSON_RIGHT_SIDE_Arm
-        val JSON_RIGHT_SIDE_Arm_X =
-            jArray.getJSONObject(6).getInt("x") - jArray.getJSONObject(10).getInt(
-                "x"
-            )
-        val JSON_RIGHT_SIDE_Arm_Y =
-            jArray.getJSONObject(6).getInt("y") - jArray.getJSONObject(10).getInt(
-                "y"
-            )
-        JSON_RIGHT_SIDE_Arm_angle = Math.atan2(
-            JSON_RIGHT_SIDE_Arm_Y.toDouble(),
-            JSON_RIGHT_SIDE_Arm_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("JSON_RIGHT_SIDE_Arm_angle", JSON_RIGHT_SIDE_Arm_angle.toString());
-
-        // JSON_RIGHT_SIDE_Leg
-        val JSON_RIGHT_SIDE_Leg_X =
-            jArray.getJSONObject(16).getInt("x") - jArray.getJSONObject(12).getInt(
-                "x"
-            )
-        val JSON_RIGHT_SIDE_Leg_Y =
-            jArray.getJSONObject(16).getInt("y") - jArray.getJSONObject(12).getInt(
-                "y"
-            )
-        JSON_RIGHT_SIDE_Leg_angle = Math.atan2(
-            JSON_RIGHT_SIDE_Leg_Y.toDouble(),
-            JSON_RIGHT_SIDE_Leg_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("JSON_RIGHT_SIDE_Leg_angle", JSON_RIGHT_SIDE_Leg_angle.toString());
-
-        // Json_Left_ForeArm
-        val Json_LEFT_ForeArm_X =
-            jArray.getJSONObject(9).getInt("x") - jArray.getJSONObject(7).getInt(
-                "x"
-            )
-//        Log.d("Json_Left_ForeArm_X", Json_LEFT_ForeArm_X.toString());
-        val Json_LEFT_ForeArm_Y =
-            jArray.getJSONObject(9).getInt("y") - jArray.getJSONObject(7).getInt(
-                "y"
-            )
-//        Log.d("Json_Left_ForeArm_Y", Json_LEFT_ForeArm_Y.toString());
-        Json_LEFT_ForeArm_angle = Math.atan2(
-            Json_LEFT_ForeArm_Y.toDouble(),
-            Json_LEFT_ForeArm_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("Json_Left_ForeArm_angle", Json_LEFT_ForeArm_angle.toString());
-
-        // Json_LEFT_Arm
-        val Json_LEFT_Arm_X =
-            jArray.getJSONObject(7).getInt("x") - jArray.getJSONObject(5).getInt("x")
-//        Log.d("Json_LEFT_Arm_X", Json_LEFT_Arm_X.toString());
-        val Json_LEFT_Arm_Y =
-            jArray.getJSONObject(7).getInt("y") - jArray.getJSONObject(5).getInt("y")
-//        Log.d("Json_LEFT_Arm_Y", Json_LEFT_Arm_Y.toString());
-        Json_LEFT_Arm_angle =
-            Math.atan2(Json_LEFT_Arm_Y.toDouble(), Json_LEFT_Arm_X.toDouble()) * (180.0 / Math.PI)
-//        Log.d("Json_LEFT_Arm_angle", Json_LEFT_Arm_angle.toString());
-
-        // Json_LEFT_Body
-        val Json_LEFT_Body_X =
-            jArray.getJSONObject(5).getInt("x") - jArray.getJSONObject(11).getInt(
-                "x"
-            )
-//        Log.d("Json_LEFT_Body_X", Json_LEFT_Body_X.toString());
-        val Json_LEFT_Body_Y =
-            jArray.getJSONObject(5).getInt("y") - jArray.getJSONObject(11).getInt(
-                "y"
-            )
-//        Log.d("Json_LEFT_Body_Y", Json_LEFT_Body_Y.toString());
-        Json_LEFT_Body_angle = Math.atan2(
-            Json_LEFT_Body_Y.toDouble(),
-            Json_LEFT_Body_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("Json_LEFT_Body_angle", Json_LEFT_Body_angle.toString());
-
-        // Json_LEFT_KneeUp
-        val Json_LEFT_KneeUp_X =
-            jArray.getJSONObject(11).getInt("x") - jArray.getJSONObject(13).getInt(
-                "x"
-            )
-//        Log.d("Json_LEFT_KneeUp_X", Json_LEFT_KneeUp_X.toString());
-        val Json_LEFT_KneeUp_Y =
-            jArray.getJSONObject(11).getInt("y") - jArray.getJSONObject(13).getInt(
-                "y"
-            )
-//        Log.d("Json_LEFT_KneeUp_Y", Json_LEFT_KneeUp_Y.toString());
-        Json_LEFT_KneeUp_angle = Math.atan2(
-            Json_LEFT_KneeUp_Y.toDouble(),
-            Json_LEFT_KneeUp_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("Json_LEFT_KneeUp_angle", Json_LEFT_KneeUp_angle.toString());
-
-        // Json_LEFT_KneeDown
-        val Json_LEFT_KneeDown_X =
-            jArray.getJSONObject(13).getInt("x") - jArray.getJSONObject(15).getInt(
-                "x"
-            )
-//        Log.d("Json_LEFT_KneeDown_X", Json_LEFT_KneeDown_X.toString());
-        val Json_LEFT_KneeDown_Y =
-            jArray.getJSONObject(13).getInt("y") - jArray.getJSONObject(15).getInt(
-                "y"
-            )
-//        Log.d("Json_LEFT_KneeDown_Y", Json_LEFT_KneeDown_Y.toString());
-        Json_LEFT_KneeDown_angle = Math.atan2(
-            Json_LEFT_KneeDown_Y.toDouble(),
-            Json_LEFT_KneeDown_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("Json_LEFT_KneeDown_angle", Json_LEFT_KneeDown_angle.toString());
+            Json_RIGHT_Arm_angle = Math.atan2(
+                Json_RIGHT_Arm_Y.toDouble(),
+                Json_RIGHT_Arm_X.toDouble()
+            ) * (180.0 / Math.PI)
 
 
-        // Json_RIGHT_ForeArm
-        val Json_RIGHT_ForeArm_X =
-            jArray.getJSONObject(10).getInt("x") - jArray.getJSONObject(8).getInt(
-                "x"
-            )
-//        Log.d("Json_RIGHT_ForeArm_X", Json_RIGHT_ForeArm_X.toString());
-        val Json_RIGHT_ForeArm_Y =
-            jArray.getJSONObject(10).getInt("y") - jArray.getJSONObject(8).getInt(
-                "y"
-            )
-//        Log.d("Json_RIGHT_ForeArm_Y", Json_LEFT_ForeArm_Y.toString());
-        Json_RIGHT_ForeArm_angle = Math.atan2(
-            Json_RIGHT_ForeArm_Y.toDouble(),
-            Json_RIGHT_ForeArm_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("Json_RIGHT_ForeArm_angle", Json_RIGHT_ForeArm_angle.toString());
+            // Json_RIGHT_Body
+            val Json_RIGHT_Body_X =
+                jArray.getJSONObject(6).getInt("x") - jArray.getJSONObject(12).getInt(
+                    "x"
+                )
 
-        // Json_RIGHT_Arm
-        val Json_RIGHT_Arm_X = jArray.getJSONObject(8).getInt("x") - jArray.getJSONObject(6).getInt(
-            "x"
-        )
-//        Log.d("Json_RIGHT_Arm_X", Json_RIGHT_Arm_X.toString());
-        val Json_RIGHT_Arm_Y = jArray.getJSONObject(8).getInt("y") - jArray.getJSONObject(6).getInt(
-            "y"
-        )
-//        Log.d("Json_RIGHT_Arm_Y", Json_RIGHT_Arm_Y.toString());
-        Json_RIGHT_Arm_angle = Math.atan2(
-            Json_RIGHT_Arm_Y.toDouble(),
-            Json_RIGHT_Arm_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("Json_RIGHT_Arm_angle", Json_RIGHT_Arm_angle.toString());
+            val Json_RIGHT_Body_Y =
+                jArray.getJSONObject(6).getInt("y") - jArray.getJSONObject(12).getInt(
+                    "y"
+                )
 
-        // Json_RIGHT_Body
-        val Json_RIGHT_Body_X =
-            jArray.getJSONObject(6).getInt("x") - jArray.getJSONObject(12).getInt(
-                "x"
-            )
-//        Log.d("Json_RIGHT_Body_X", Json_RIGHT_Body_X.toString());
-        val Json_RIGHT_Body_Y =
-            jArray.getJSONObject(6).getInt("y") - jArray.getJSONObject(12).getInt(
-                "y"
-            )
-//        Log.d("Json_RIGHT_Body_Y", Json_RIGHT_Body_Y.toString());
-        Json_RIGHT_Body_angle = Math.atan2(
-            Json_RIGHT_Body_Y.toDouble(),
-            Json_RIGHT_Body_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("Json_RIGHT_Body_angle", Json_RIGHT_Body_angle.toString());
+            Json_RIGHT_Body_angle = Math.atan2(
+                Json_RIGHT_Body_Y.toDouble(),
+                Json_RIGHT_Body_X.toDouble()
+            ) * (180.0 / Math.PI)
 
-        // Json_RIGHT_KneeUp
-        val Json_RIGHT_KneeUp_X =
-            jArray.getJSONObject(12).getInt("x") - jArray.getJSONObject(14).getInt(
-                "x"
-            )
-//        Log.d("Json_RIGHT_KneeUp_X", Json_RIGHT_KneeUp_X.toString());
-        val Json_RIGHT_KneeUp_Y =
-            jArray.getJSONObject(12).getInt("y") - jArray.getJSONObject(14).getInt(
-                "y"
-            )
-//        Log.d("Json_RIGHT_KneeUp_Y", Json_RIGHT_KneeUp_Y.toString());
-        Json_RIGHT_KneeUp_angle = Math.atan2(
-            Json_RIGHT_KneeUp_Y.toDouble(),
-            Json_RIGHT_KneeUp_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("Json_RIGHT_KneeUp_angle", Json_RIGHT_KneeUp_angle.toString());
 
-        // Json_RIGHT_KneeDown
-        val Json_RIGHT_KneeDown_X =
-            jArray.getJSONObject(14).getInt("x") - jArray.getJSONObject(16).getInt(
-                "x"
-            )
-//        Log.d("Json_RIGHT_KneeDown_X", Json_RIGHT_KneeDown_X.toString());
-        val Json_RIGHT_KneeDown_Y =
-            jArray.getJSONObject(14).getInt("y") - jArray.getJSONObject(16).getInt(
-                "y"
-            )
-//        Log.d("Json_RIGHT_KneeDown_Y", Json_RIGHT_KneeDown_Y.toString());
-        Json_RIGHT_KneeDown_angle = Math.atan2(
-            Json_RIGHT_KneeDown_Y.toDouble(),
-            Json_RIGHT_KneeDown_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("Json_RIGHT_KneeDown_angle", Json_RIGHT_KneeDown_angle.toString());
+            // Json_RIGHT_KneeUp
+            val Json_RIGHT_KneeUp_X =
+                jArray.getJSONObject(12).getInt("x") - jArray.getJSONObject(14).getInt(
+                    "x"
+                )
 
-        // Json_CENTER_Body
-        val Json_CENTER_Body_X =
-            jArray.getJSONObject(5).getInt("x") - jArray.getJSONObject(6).getInt(
-                "x"
-            )
-//        Log.d("Json_CENTER_Body_X", Json_CENTER_Body_X.toString());
-        val Json_CENTER_Body_Y =
-            jArray.getJSONObject(5).getInt("y") - jArray.getJSONObject(6).getInt(
-                "y"
-            )
-//        Log.d("Json_CENTER_Body_Y", Json_CENTER_Body_Y.toString());
-        Json_CENTER_Body_angle = Math.atan2(
-            Json_CENTER_Body_Y.toDouble(),
-            Json_CENTER_Body_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("Json_CENTER_Body_angle", Json_CENTER_Body_angle.toString());
+            val Json_RIGHT_KneeUp_Y =
+                jArray.getJSONObject(12).getInt("y") - jArray.getJSONObject(14).getInt(
+                    "y"
+                )
 
-        // Json_CENTER_Shoulder
-        val Json_CENTER_Shoulder_X =
-            jArray.getJSONObject(11).getInt("x") - jArray.getJSONObject(12).getInt(
-                "x"
-            )
-//        Log.d("Json_CENTER_Shoulder_X", Json_CENTER_Shoulder_X.toString());
-        val Json_CENTER_Shoulder_Y =
-            jArray.getJSONObject(11).getInt("y") - jArray.getJSONObject(12).getInt(
-                "y"
-            )
-//        Log.d("Json_CENTER_Shoulder_Y", Json_CENTER_Shoulder_Y.toString());
-        Json_CENTER_Shoulder_angle = Math.atan2(
-            Json_CENTER_Shoulder_Y.toDouble(),
-            Json_CENTER_Shoulder_X.toDouble()
-        ) * (180.0 / Math.PI)
-//        Log.d("Json_CENTER_Shoulder_angle", Json_CENTER_Shoulder_angle.toString());
+            Json_RIGHT_KneeUp_angle = Math.atan2(
+                Json_RIGHT_KneeUp_Y.toDouble(),
+                Json_RIGHT_KneeUp_X.toDouble()
+            ) * (180.0 / Math.PI)
+
+
+            // Json_RIGHT_KneeDown
+            val Json_RIGHT_KneeDown_X =
+                jArray.getJSONObject(14).getInt("x") - jArray.getJSONObject(16).getInt(
+                    "x"
+                )
+
+            val Json_RIGHT_KneeDown_Y =
+                jArray.getJSONObject(14).getInt("y") - jArray.getJSONObject(16).getInt(
+                    "y"
+                )
+
+            Json_RIGHT_KneeDown_angle = Math.atan2(
+                Json_RIGHT_KneeDown_Y.toDouble(),
+                Json_RIGHT_KneeDown_X.toDouble()
+            ) * (180.0 / Math.PI)
+
+
+            // Json_CENTER_Body
+            val Json_CENTER_Body_X =
+                jArray.getJSONObject(5).getInt("x") - jArray.getJSONObject(6).getInt(
+                    "x"
+                )
+
+            val Json_CENTER_Body_Y =
+                jArray.getJSONObject(5).getInt("y") - jArray.getJSONObject(6).getInt(
+                    "y"
+                )
+
+            Json_CENTER_Body_angle = Math.atan2(
+                Json_CENTER_Body_Y.toDouble(),
+                Json_CENTER_Body_X.toDouble()
+            ) * (180.0 / Math.PI)
+
+
+            // Json_CENTER_Shoulder
+            val Json_CENTER_Shoulder_X =
+                jArray.getJSONObject(11).getInt("x") - jArray.getJSONObject(12).getInt(
+                    "x"
+                )
+
+            val Json_CENTER_Shoulder_Y =
+                jArray.getJSONObject(11).getInt("y") - jArray.getJSONObject(12).getInt(
+                    "y"
+                )
+
+            Json_CENTER_Shoulder_angle = Math.atan2(
+                Json_CENTER_Shoulder_Y.toDouble(),
+                Json_CENTER_Shoulder_X.toDouble()
+            ) * (180.0 / Math.PI)
+
+            //        Log.d("JSON_LEFT_SIDE_Arm_angle", JSON_LEFT_SIDE_Arm_angle.toString());
+            //        Log.d("JSON_LEFT_SIDE_Leg_angle", JSON_LEFT_SIDE_Leg_angle.toString());
+            //        Log.d("JSON_RIGHT_SIDE_Arm_angle", JSON_RIGHT_SIDE_Arm_angle.toString());
+            //        Log.d("JSON_RIGHT_SIDE_Leg_angle", JSON_RIGHT_SIDE_Leg_angle.toString());
+            //        Log.d("Json_Left_ForeArm_X", Json_LEFT_ForeArm_X.toString());
+            //        Log.d("Json_Left_ForeArm_Y", Json_LEFT_ForeArm_Y.toString());
+            //        Log.d("Json_Left_ForeArm_angle", Json_LEFT_ForeArm_angle.toString());
+            //        Log.d("Json_LEFT_Arm_X", Json_LEFT_Arm_X.toString());
+            //        Log.d("Json_LEFT_Arm_Y", Json_LEFT_Arm_Y.toString());
+            //        Log.d("Json_LEFT_Arm_angle", Json_LEFT_Arm_angle.toString());
+            //        Log.d("Json_LEFT_Body_X", Json_LEFT_Body_X.toString());
+            //        Log.d("Json_LEFT_Body_Y", Json_LEFT_Body_Y.toString());
+            //        Log.d("Json_LEFT_Body_angle", Json_LEFT_Body_angle.toString());
+            //        Log.d("Json_LEFT_KneeUp_X", Json_LEFT_KneeUp_X.toString());
+            //        Log.d("Json_LEFT_KneeUp_Y", Json_LEFT_KneeUp_Y.toString());
+            //        Log.d("Json_LEFT_KneeUp_angle", Json_LEFT_KneeUp_angle.toString());
+            //        Log.d("Json_LEFT_KneeDown_X", Json_LEFT_KneeDown_X.toString());
+            //        Log.d("Json_LEFT_KneeDown_Y", Json_LEFT_KneeDown_Y.toString());
+            //        Log.d("Json_LEFT_KneeDown_angle", Json_LEFT_KneeDown_angle.toString());
+            //        Log.d("Json_RIGHT_ForeArm_X", Json_RIGHT_ForeArm_X.toString());
+            //        Log.d("Json_RIGHT_ForeArm_Y", Json_LEFT_ForeArm_Y.toString());
+            //        Log.d("Json_RIGHT_ForeArm_angle", Json_RIGHT_ForeArm_angle.toString());
+            //        Log.d("Json_RIGHT_Arm_X", Json_RIGHT_Arm_X.toString());
+            //        Log.d("Json_RIGHT_Arm_Y", Json_RIGHT_Arm_Y.toString());
+            //        Log.d("Json_RIGHT_Arm_angle", Json_RIGHT_Arm_angle.toString());
+            //        Log.d("Json_RIGHT_Body_X", Json_RIGHT_Body_X.toString());
+            //        Log.d("Json_RIGHT_Body_Y", Json_RIGHT_Body_Y.toString());
+            //        Log.d("Json_RIGHT_Body_angle", Json_RIGHT_Body_angle.toString());
+            //        Log.d("Json_RIGHT_KneeUp_X", Json_RIGHT_KneeUp_X.toString());
+            //        Log.d("Json_RIGHT_KneeUp_Y", Json_RIGHT_KneeUp_Y.toString());
+            //        Log.d("Json_RIGHT_KneeUp_angle", Json_RIGHT_KneeUp_angle.toString());
+            //        Log.d("Json_RIGHT_KneeDown_X", Json_RIGHT_KneeDown_X.toString());
+            //        Log.d("Json_RIGHT_KneeDown_Y", Json_RIGHT_KneeDown_Y.toString());
+            //        Log.d("Json_RIGHT_KneeDown_angle", Json_RIGHT_KneeDown_angle.toString());
+            //        Log.d("Json_CENTER_Body_X", Json_CENTER_Body_X.toString());
+            //        Log.d("Json_CENTER_Body_Y", Json_CENTER_Body_Y.toString());
+            //        Log.d("Json_CENTER_Body_angle", Json_CENTER_Body_angle.toString());
+            //        Log.d("Json_CENTER_Shoulder_X", Json_CENTER_Shoulder_X.toString());
+            //        Log.d("Json_CENTER_Shoulder_Y", Json_CENTER_Shoulder_Y.toString());
+            //        Log.d("Json_CENTER_Shoulder_angle", Json_CENTER_Shoulder_angle.toString());
+
+        }
+
+        teacher_dataCal()
 
 //        if(ActiveCounter == 130|| ActiveCounter == 149|| ActiveCounter == 168){
 //            val toneGen1 = ToneGenerator(AudioManager.STREAM_MUSIC, 200)
 //            toneGen1.startTone(ToneGenerator.TONE_CDMA_ABBR_ALERT, 300)
 //        }
 
-        if(ActiveCounter == 150){
+        if (ActiveCounter == 150) {
             val toneGen1 = ToneGenerator(AudioManager.STREAM_MUSIC, 200)
             toneGen1.startTone(ToneGenerator.TONE_CDMA_ABBR_ALERT, 100)
             var end = SystemClock.currentThreadTimeMillis();
-            Log.d("운동 한세트 걸린시간 : ",(end - start).toString());
+            Log.d("운동 한세트 걸린시간 : ", (end - start).toString());
             start = end;
 
             ActiveCounter = 0
             sidejackCount++;
-            Log.d("ActiveCounter", ActiveCounter.toString() )
-        }else{
+            Log.d("ActiveCounter", ActiveCounter.toString())
+        } else {
             ActiveCounter++;
-            Log.d("ActiveCounter", ActiveCounter.toString() )
+            Log.d("ActiveCounter", ActiveCounter.toString())
         }
 
     }
 
     // 운동 프레임 비교
-    fun FrameComparison(){
+    fun FrameComparison() {
 
         // 바운드 높게 줄수록 점수 높음
-        if(Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 10 || Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 10){
+        if (Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 10 || Math.abs(
+                RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle
+            ) <= 10
+        ) {
             ActionScore += 100;
-        }
-        else if(Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 25 || Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 25){
+        } else if (Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 25 || Math.abs(
+                RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle
+            ) <= 25
+        ) {
             ActionScore += 90;
-        }
-        else if(Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 40 || Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 40){
+        } else if (Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 35 || Math.abs(
+                RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle
+            ) <= 35
+        ) {
             ActionScore += 80;
-        }
-//        else if(Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 30 || Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 30){
-//            ActionScore += 70;
-//        }
-        else {
+        } else if (Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 50 || Math.abs(
+                RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle
+            ) <= 50
+        ) {
+            ActionScore += 70;
+        } else {
             ActionScore += 50;
         }
 
-//        if(Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 15){
-//            ActionScore += 100;
-//        }
-//        else if(Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 25){
-//            ActionScore += 90;
-//        }
-//        else if(Math.abs(RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle) <= 35){
-//            ActionScore += 80;
-//        }
-//        else{
-//            ActionScore += 60;
-//        }
 
-        Log.d("팔 데이터 값 비교 : ", (LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle).toString()  )
-        Log.d("팔 데이터 값 비교 : ", (RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle).toString()  )
+        Log.d("팔 데이터 값 비교 : ", (LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle).toString())
+        Log.d("팔 데이터 값 비교 : ", (RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle).toString())
 
 
 
-        if ((frameCounter % 15) == 0)  {
+        if ((frameCounter % 15) == 0) {
 
 //            Log.d("ActionScore : ", ActionScore.toString())
-            Result_ActionScore  = ActionScore / 15
+            Result_ActionScore = ActionScore / 15
 //            Log.d("Result_ActionScore : ", Result_ActionScore.toString())
 
-            if((Result_ActionScore) >= 90 ){
-//                Log.d("평가중 굳 ActionScore : ", (Result_ActionScore).toString())
+            if ((Result_ActionScore) >= 90) {
+                Log.d("평가중 굳 ActionScore : ", (Result_ActionScore).toString())
                 ActionFeedback = "Good"
-//                Log.d("ActionFeedback : ",ActionFeedback)
+                Log.d("ActionFeedback : ", ActionFeedback)
                 ActionScore = 0
                 Result_ActionScore = 0
-            }
-            else if((Result_ActionScore) >= 70 ){
-//                Log.d("평가중 노말 ActionScore : ", (Result_ActionScore).toString())
+            } else if ((Result_ActionScore) >= 80) {
+                Log.d("평가중 노말 ActionScore : ", (Result_ActionScore).toString())
                 ActionFeedback = "Normal"
-//                Log.d("ActionFeedback : ",ActionFeedback)
+                Log.d("ActionFeedback : ", ActionFeedback)
                 ActionScore = 0
                 Result_ActionScore = 0
-            }
-            else {
+            } else {
 //                Log.d("평가중 뱃 ActionScore : ", (Result_ActionScore).toString())
                 ActionFeedback = "Bad"
 //                Log.d("ActionFeedback : ",ActionFeedback)
@@ -1008,7 +1049,6 @@ class Posenet(
             }
         }
     }
-
 
 
     // 튜토리얼로 활용
@@ -1125,10 +1165,12 @@ class Posenet(
         }
 
 
-        // 다리
+        // 다리 평가 X
         // 부위별 score가 0.8 ~ 0.9
         if (Estimate_Leg_Bound > 5) {
 
         }
+
     }
+
 }
