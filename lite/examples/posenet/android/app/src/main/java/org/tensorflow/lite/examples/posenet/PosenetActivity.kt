@@ -42,6 +42,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.isInvisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
+import kotlinx.android.synthetic.main.tfe_pn_activity_posenet.view.*
 import org.tensorflow.lite.examples.posenet.lib.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -150,10 +151,7 @@ class PosenetActivity :
   private var jointHolder: SurfaceHolder? = null
 
   // [210126]
-  private var imageView: ImageView ?= null
-
-  // [210127]
-  val tempImage: ImageView? = null;
+  private var imageView: ImageView? = null
 
 
   /** [CameraDevice.StateCallback] is called when [CameraDevice] changes its state.   */
@@ -231,29 +229,6 @@ class PosenetActivity :
     // [210126]
     imageView = view.findViewById(R.id.imageView)
 
-
-    // 이미지 변경 안됨
-
-//    if(ActionFeedback == "Good") {
-//      Log.d("ActionFeedback",ActionFeedback)
-//      tempImage!!.setImageResource(R.drawable.good)
-//      imageView = tempImage;
-//    }
-//    else if(ActionFeedback == "Normal") {
-//      Log.d("ActionFeedback",ActionFeedback)
-//      tempImage!!.setImageResource(R.drawable.normal)
-//      imageView = tempImage;
-//    }
-//    else if(ActionFeedback == "Bad"){
-//      Log.d("ActionFeedback",ActionFeedback)
-//      tempImage!!.setImageResource(R.drawable.bad)
-//      imageView = tempImage;
-//    }
-//    else{
-//      imageView!!.isInvisible;
-////      tempImage!!.setImageResource(R.drawable.bad)
-////      imageView = tempImage;
-//    }
   }
 
   override fun onResume() {
@@ -491,9 +466,13 @@ class PosenetActivity :
       processImage(rotatedBitmap)
       var endTimeOverall = SystemClock.elapsedRealtimeNanos() - stratTimeOverall
       Log.i(
-              "Time(Overall)",
-              String.format("%.2f ms", 1.0f * endTimeOverall / 1_000_000)
+        "Time(Overall)",
+        String.format("%.2f ms", 1.0f * endTimeOverall / 1_000_000)
       )
+
+      // [210126]
+      imageView!!.printImage()
+
     }
   }
 
@@ -623,190 +602,8 @@ class PosenetActivity :
     jointHolder!!.unlockCanvasAndPost(canvas)
   }
 
-
-  /** Draw bitmap on Canvas.   */
-  private fun draw(canvas: Canvas, person: Person, bitmap: Bitmap) {
-
-    if (mediaPlayer == null) {
-      mediaPlayer = MediaPlayer()
-    } else {
-      mediaPlayer!!.reset()
-    }
-
-    try {
-      val path = "android.resource://org.tensorflow.lite.examples.posenet/"+R.raw.sidejack
-      mediaPlayer!!.setDataSource(path)
-
-      //mediaPlayer.setVolume(0, 0); //볼륨 제거
-      mediaPlayer!!.setDisplay(surfaceHolder) // 화면 호출
-      mediaPlayer!!.prepare() // 비디오 load 준비
-
-      //mediaPlayer.setOnCompletionListener(completionListener); // 비디오 재생 완료 리스너
-      mediaPlayer!!.start()
-    } catch (e: Exception) {
-      Log.e("MyTag", "surface view error : " + e.message)
-    }
-
-    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-    // Draw `bitmap` and `person` in square canvas.
-    val screenWidth: Int
-    val screenHeight: Int
-    val left: Int
-    val right: Int
-    val top: Int
-    val bottom: Int
-    if (canvas.height > canvas.width) {
-      screenWidth = canvas.width
-      screenHeight = canvas.width
-      left = 0
-      top = (canvas.height - canvas.width) / 2
-    } else {
-      screenWidth = canvas.height
-      screenHeight = canvas.height
-      left = (canvas.width - canvas.height) / 2
-      top = 0
-    }
-    right = left + screenWidth
-    bottom = top + screenHeight
-
-    setPaint()
-
-
-
-    // 카메라 그리기
-    canvas.drawBitmap(
-      bitmap,
-      Rect(0, 0, bitmap.width, bitmap.height),
-      Rect(0, 1500, 500, 2000),
-      paint
-    )
-
-    val widthRatio = screenWidth.toFloat() / MODEL_WIDTH
-    val heightRatio = screenHeight.toFloat() / MODEL_HEIGHT
-
-    // Draw key points over the image.
-    for (keyPoint in person.keyPoints) {
-      if (keyPoint.score > minConfidence) {
-        val position = keyPoint.position
-
-        val adjustedX: Float = position.x.toFloat() * widthRatio + left
-        val adjustedY: Float = position.y.toFloat() * heightRatio + top
-        canvas.drawCircle(adjustedX, adjustedY, circleRadius, paint)
-      }
-    }
-
-    for (line in bodyJoints) {
-      if (
-        (person.keyPoints[line.first.ordinal].score > minConfidence) and
-        (person.keyPoints[line.second.ordinal].score > minConfidence)
-      ) {
-        canvas.drawLine(
-          person.keyPoints[line.first.ordinal].position.x.toFloat() * widthRatio + left,
-          person.keyPoints[line.first.ordinal].position.y.toFloat() * heightRatio + top,
-          person.keyPoints[line.second.ordinal].position.x.toFloat() * widthRatio + left,
-          person.keyPoints[line.second.ordinal].position.y.toFloat() * heightRatio + top,
-          paint
-        )
-      }
-    }
-
-    var Teststring = ""
-
-    if(ClickState == "sidejack 학습"){
-      if(ActionFlag == 0 || ActionFlag == 2){
-        Teststring = "차렷";
-      }
-      else if(ActionFlag == 1){
-        Teststring = "왼쪽";
-      }
-      else if(ActionFlag == 3){
-        Teststring = "오른쪽";
-      }
-      canvas.drawText(
-        "수행 동작 : $Teststring   /  수행 횟수 : $ActionCount",
-        (15.0f * widthRatio),
-        (30.0f * heightRatio),
-        paint
-      )
-      canvas.drawText(
-        "왼팔 : $estimate_LEFT_Arm / 오른팔 : $estimate_RIGHT_Arm",
-        (15.0f * widthRatio),
-        (50.0f * heightRatio),
-        paint
-      )
-
-    }
-    else if(ClickState == "sidejack 운동") {
-      canvas.drawText(
-        "수행 동작 : $ActionFeedback 수행 횟수 : $sidejackCount  운동 점수 : $Result_ActionScore ",
-        (15.0f * widthRatio),
-        (30.0f * heightRatio),
-        paint
-      )
-
-    }
-
-    canvas.drawText(
-      "Score: %.2f".format(person.score),
-      (15.0f * widthRatio),
-      (10.0f * heightRatio),
-      paint
-    )
-//    canvas.drawText(
-//      "Device: %s".format(posenet.device),
-//      (15.0f * widthRatio),
-//      (50.0f * heightRatio ),
-//      paint
-//    )
-//    canvas.drawText(
-//      "Time: %.2f ms".format(posenet.lastInferenceTimeNanos * 1.0f / 1_000_000),
-//      (15.0f * widthRatio),
-//      (30.0f * heightRatio ),
-//      paint
-//    )
-
-
-
-    // 실시간 피드백
-    // Toast 메세지 띄우기 & 핸드폰 TalkBack 기능 키기
-    // Toast.makeText(this.context,"$Teststring",Toast.LENGTH_LONG).show()
-
-    // 1/20일 수정전
-//    canvas.drawText(
-//      "수행 동작 : $ActionFeedback 수행 횟수 : $sidejackCount",
-//      (15.0f * widthRatio),
-//      (30.0f * heightRatio),
-//      paint
-//    )
-//    canvas.drawText(
-//      "수행 동작 : $ActionFeedback      수행 횟수 : $ActionCount",
-//      (15.0f * widthRatio),
-//      (30.0f * heightRatio),
-//      paint
-//    )
-//    canvas.drawText(
-//      "왼팔 : $estimate_LEFT_Arm / 오른팔 : $estimate_RIGHT_Arm",
-//      (15.0f * widthRatio),
-//      (50.0f * heightRatio),
-//      paint
-//    )
-
-    Log.d("Frame : ", frameCounter.toString());
-    frameCounter++;
-
-
-    // Draw!
-    surfaceHolder!!.unlockCanvasAndPost(canvas)
-  }
-
-
-
   /** Process image using Posenet library.   */
   private fun processImage(bitmap: Bitmap) {
-
-
-
-
     // Crop bitmap.
     val croppedBitmap = cropBitmap(bitmap)
 
@@ -823,6 +620,7 @@ class PosenetActivity :
     val jointCanvas: Canvas = jointHolder!!.lockCanvas()
     val clearBG = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
     drawStudent(jointCanvas, person, clearBG)
+
 
     // [210125]
     // draw(canvas, person, scaledBitmap)
@@ -950,5 +748,26 @@ class PosenetActivity :
      * Tag for the [Log].
      */
     private const val TAG = "PosenetActivity"
+  }
+}
+
+private fun ImageView.printImage() {
+  // [210126]
+  when (ActionFeedback) {
+    "Good" -> {
+      Log.d("ActionFeedback",ActionFeedback)
+      imageView!!.setImageResource(R.drawable.good)
+    }
+    "Normal" -> {
+      Log.d("ActionFeedback",ActionFeedback)
+      imageView!!.setImageResource(R.drawable.normal)
+    }
+    "Bad" -> {
+      Log.d("ActionFeedback",ActionFeedback)
+      imageView!!.setImageResource(R.drawable.bad)
+    }
+    else -> {
+      imageView!!.isInvisible;
+    }
   }
 }
