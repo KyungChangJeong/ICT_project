@@ -39,6 +39,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import android.widget.VideoView
 import androidx.core.app.ActivityCompat
+import androidx.core.view.isInvisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import org.tensorflow.lite.examples.posenet.lib.*
@@ -151,6 +152,9 @@ class PosenetActivity :
   // [210126]
   private var imageView: ImageView ?= null
 
+  // [210127]
+  val tempImage: ImageView? = null;
+
 
   /** [CameraDevice.StateCallback] is called when [CameraDevice] changes its state.   */
   private val stateCallback = object : CameraDevice.StateCallback() {
@@ -216,7 +220,7 @@ class PosenetActivity :
 
     // [210122]
     videoView = view.findViewById(R.id.videoView)
-    var videoUri = Uri.parse("android.resource://" + context!!.packageName + "/" + R.raw.sidejack3)
+    var videoUri = Uri.parse("android.resource://" + context!!.packageName + "/" + R.raw.sidejack14)
     videoView!!.setVideoURI(videoUri)
 
     // [210125]
@@ -228,12 +232,27 @@ class PosenetActivity :
     imageView = view.findViewById(R.id.imageView)
 
 
+    // 이미지 변경 안됨
 
-//    if(ActionFeedback == "GOOD") {
-//      imageView.setImageResource(R.drawable.countdown)
+//    if(ActionFeedback == "Good") {
+//      Log.d("ActionFeedback",ActionFeedback)
+//      tempImage!!.setImageResource(R.drawable.good)
+//      imageView = tempImage;
+//    }
+//    else if(ActionFeedback == "Normal") {
+//      Log.d("ActionFeedback",ActionFeedback)
+//      tempImage!!.setImageResource(R.drawable.normal)
+//      imageView = tempImage;
+//    }
+//    else if(ActionFeedback == "Bad"){
+//      Log.d("ActionFeedback",ActionFeedback)
+//      tempImage!!.setImageResource(R.drawable.bad)
+//      imageView = tempImage;
 //    }
 //    else{
-//      imageView.setImageResource(R.drawable.Bad)
+//      imageView!!.isInvisible;
+////      tempImage!!.setImageResource(R.drawable.bad)
+////      imageView = tempImage;
 //    }
   }
 
@@ -615,7 +634,7 @@ class PosenetActivity :
     }
 
     try {
-      val path = "android.resource://org.tensorflow.lite.examples.posenet/"+R.raw.sidejack3
+      val path = "android.resource://org.tensorflow.lite.examples.posenet/"+R.raw.sidejack
       mediaPlayer!!.setDataSource(path)
 
       //mediaPlayer.setVolume(0, 0); //볼륨 제거

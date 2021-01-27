@@ -981,28 +981,28 @@ class Posenet(
 
         if ((frameCounter % 15) == 0)  {
 
-            Log.d("ActionScore : ", ActionScore.toString())
+//            Log.d("ActionScore : ", ActionScore.toString())
             Result_ActionScore  = ActionScore / 15
-            Log.d("Result_ActionScore : ", Result_ActionScore.toString())
+//            Log.d("Result_ActionScore : ", Result_ActionScore.toString())
 
             if((Result_ActionScore) >= 90 ){
-                Log.d("평가중 굳 ActionScore : ", (Result_ActionScore).toString())
+//                Log.d("평가중 굳 ActionScore : ", (Result_ActionScore).toString())
                 ActionFeedback = "Good"
-                Log.d("ActionFeedback : ",ActionFeedback)
+//                Log.d("ActionFeedback : ",ActionFeedback)
                 ActionScore = 0
                 Result_ActionScore = 0
             }
             else if((Result_ActionScore) >= 70 ){
-                Log.d("평가중 노말 ActionScore : ", (Result_ActionScore).toString())
+//                Log.d("평가중 노말 ActionScore : ", (Result_ActionScore).toString())
                 ActionFeedback = "Normal"
-                Log.d("ActionFeedback : ",ActionFeedback)
+//                Log.d("ActionFeedback : ",ActionFeedback)
                 ActionScore = 0
                 Result_ActionScore = 0
             }
             else {
-                Log.d("평가중 뱃 ActionScore : ", (Result_ActionScore).toString())
+//                Log.d("평가중 뱃 ActionScore : ", (Result_ActionScore).toString())
                 ActionFeedback = "Bad"
-                Log.d("ActionFeedback : ",ActionFeedback)
+//                Log.d("ActionFeedback : ",ActionFeedback)
                 ActionScore = 0
                 Result_ActionScore = 0
             }
