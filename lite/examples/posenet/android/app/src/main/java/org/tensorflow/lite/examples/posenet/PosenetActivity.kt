@@ -29,10 +29,7 @@ import android.media.ImageReader
 import android.media.ImageReader.OnImageAvailableListener
 import android.media.MediaPlayer
 import android.net.Uri
-import android.os.Bundle
-import android.os.Handler
-import android.os.HandlerThread
-import android.os.Process
+import android.os.*
 import android.util.Log
 import android.util.Range
 import android.util.Size
@@ -229,6 +226,15 @@ class PosenetActivity :
 
     // [210126]
     imageView = view.findViewById(R.id.imageView)
+
+
+
+//    if(ActionFeedback == "GOOD") {
+//      imageView.setImageResource(R.drawable.countdown)
+//    }
+//    else{
+//      imageView.setImageResource(R.drawable.Bad)
+//    }
   }
 
   override fun onResume() {
@@ -422,6 +428,8 @@ class PosenetActivity :
   /** A [OnImageAvailableListener] to receive frames as they are available.  */
   private var imageAvailableListener = object : OnImageAvailableListener {
     override fun onImageAvailable(imageReader: ImageReader) {
+      var stratTimeOverall = SystemClock.elapsedRealtimeNanos()
+
       // We need wait until we have some size from onPreviewSizeChosen
       if (previewWidth == 0 || previewHeight == 0) {
         return
@@ -462,6 +470,11 @@ class PosenetActivity :
       videoView!!.start()
 
       processImage(rotatedBitmap)
+      var endTimeOverall = SystemClock.elapsedRealtimeNanos() - stratTimeOverall
+      Log.i(
+              "Time(Overall)",
+              String.format("%.2f ms", 1.0f * endTimeOverall / 1_000_000)
+      )
     }
   }
 
@@ -602,7 +615,7 @@ class PosenetActivity :
     }
 
     try {
-      val path = "android.resource://org.tensorflow.lite.examples.posenet/"+R.raw.sidejack
+      val path = "android.resource://org.tensorflow.lite.examples.posenet/"+R.raw.sidejack3
       mediaPlayer!!.setDataSource(path)
 
       //mediaPlayer.setVolume(0, 0); //볼륨 제거
@@ -771,6 +784,10 @@ class PosenetActivity :
 
   /** Process image using Posenet library.   */
   private fun processImage(bitmap: Bitmap) {
+
+
+
+
     // Crop bitmap.
     val croppedBitmap = cropBitmap(bitmap)
 
@@ -810,6 +827,7 @@ class PosenetActivity :
       previewRequestBuilder = cameraDevice!!.createCaptureRequest(
         CameraDevice.TEMPLATE_PREVIEW
       )
+      previewRequestBuilder!!.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range(10, 10))
       previewRequestBuilder!!.addTarget(recordingSurface)
 
       // Here, we create a CameraCaptureSession for camera preview.
@@ -857,7 +875,7 @@ class PosenetActivity :
   private fun setAutoFlash(requestBuilder: CaptureRequest.Builder) {
 
     // 프레임 속도 변경
-    val fpsRange = Range(0, 10)
+    val fpsRange = Range(0, 40)
 
     if (flashSupported) {
       requestBuilder.set(
