@@ -159,24 +159,24 @@
                 >
 
                 <LinearLayout
+                    android:id="@+id/widesquat"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="13dp"
-                    android:gravity="center">
+                    android:padding="13dp">
 
                     <TextView
-                        android:layout_marginTop="12dp"
-                        android:textColor="@color/black"
-                        android:textSize="18sp"
-                        android:text="사이드 레그레이즈\n(Side jack)"
-                        android:drawableLeft="@drawable/countdown"
-                        android:gravity="center"
-                        android:drawablePadding="30dp"
-                        android:layout_marginBottom="10dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        />
+                        android:layout_marginTop="12dp"
+                        android:layout_marginBottom="10dp"
+                        android:drawableLeft="@drawable/countdown"
+                        android:drawablePadding="30dp"
+                        android:gravity="center"
+                        android:text="사이드 레그레이즈\n(Side jack)"
+                        android:textColor="@color/black"
+                        android:textSize="18sp" />
 
                 </LinearLayout>
 
