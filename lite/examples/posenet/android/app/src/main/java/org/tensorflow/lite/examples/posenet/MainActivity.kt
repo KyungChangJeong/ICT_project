@@ -15,6 +15,7 @@ class MainActivity : AppCompatActivity() {
 
         val tutorial = findViewById<LinearLayout>(R.id.tutorial)
         val sidejack = findViewById<LinearLayout>(R.id.sidejack)
+        val widesquat = findViewById<LinearLayout>(R.id.widesquat)
 
         tutorial.setOnClickListener({
             val intent = Intent(this, CameraActivity::class.java)
@@ -27,6 +28,13 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, CameraActivity::class.java)
             ClickState = "sidejack 운동";
             Log.d("sidejack 운동", ClickState)
+            startActivity(intent)
+        })
+
+        widesquat.setOnClickListener({
+            val intent = Intent(this, CameraActivity::class.java)
+            ClickState = "widesquat";
+            Log.d("widesquat", ClickState)
             startActivity(intent)
         })
 

@@ -116,13 +116,14 @@ var kindAction = ""
 
 var ActionFeedback = ""
 var sidejackCount = 0
+var widesquatCount = 0
 var ActionScore = 0
 
 var Result_ActionScore = 0
 
 var tts: TextToSpeech? = null
 
-var start = SystemClock.currentThreadTimeMillis();
+//var start = SystemClock.currentThreadTimeMillis();
 
 
 class Position {
@@ -617,13 +618,29 @@ class Posenet(
                 // 선생데이터 (JSON파일 프레임 데이터 추출)
                 jsonObjectsExample()
 
-                // 운동
-                FrameComparison();
+
+
+                // 사이드잭운동
+                SidejackFrameComparison();
+
+
 
             } else {
                 ActionFeedback = "Bad"
                 Result_ActionScore = 0
             }
+        }
+        else if(kindAction == "widesquat"){
+            realtime_dataCal();
+
+            // 프레임별 실시간데이터 & 선생데이터 비교
+            // 선생데이터 (JSON파일 프레임 데이터 추출)
+
+            jsonObjectsExample()
+
+            // 와이드 스쿼트 운동
+            WidesquatFrameComparison();
+
         }
 
         frameCounter++;
@@ -636,11 +653,35 @@ class Posenet(
     @SuppressLint("LongLogTag")
     fun jsonObjectsExample() {
         // 파일 경로 세팅 완료
-        var filePathFirst = "sidejack/"
-        var filePathFinal = ".json"
+        var sidejackfilePath =""
+        var sidejackfilePathFinal=""
+        var sidejackfileJsonPath=""
+        var widesquatfilePath=""
+        var widesquatfilePathFinal=""
+        var widesquatfileJsonPath = ""
+        var ActionFramecount = 0
+        var ActionJsonPath = ""
 
-        // 실제
-        var fileJsonPath = filePathFirst + ActiveCounter + filePathFinal
+        if(kindAction == "sidejack 운동"){
+            sidejackfilePath = "sidejack/"
+            sidejackfilePathFinal = ".json"
+            // 실제
+            sidejackfileJsonPath = sidejackfilePath + ActiveCounter + sidejackfilePathFinal
+            ActionJsonPath = sidejackfileJsonPath
+            ActionFramecount = 150
+        }
+        else if(kindAction == "widesquat"){
+            widesquatfilePath = "squat/"
+            widesquatfilePathFinal = ".json"
+            // 실제
+            widesquatfileJsonPath = widesquatfilePath + ActiveCounter + widesquatfilePathFinal
+            ActionJsonPath = widesquatfileJsonPath
+            ActionFramecount = 297
+        }
+
+
+
+
 //        Log.d("fileJsonPath :",fileJsonPath)
         // test용
 //        var fileJsonPath = filePathFirst + 3 + filePathFinal
@@ -648,9 +689,11 @@ class Posenet(
 //        Log.d("JSON_FRAME_COUNTER", ActiveCounter.toString());
 //        Log.d("파일 경로 확인", fileJsonPath)
 
-        // open 해결 => 0 ~ 150 Frame의 정보 가져오도록
 
-        val inputStream = context.assets.open("$fileJsonPath")
+
+
+        // open 해결 => 0 ~ 150 Frame의 정보 가져오도록
+        val inputStream = context.assets.open("$ActionJsonPath")
         val br = BufferedReader(InputStreamReader(inputStream))
         val str = br.readText()
         val jo = JSONObject(str)
@@ -673,6 +716,8 @@ class Posenet(
 //            Log.d("JSON_DATA", "y($i): $json_y")
 //            Log.d("JSON_DATA", "y($i): $json_score")
         }
+
+
         fun teacher_dataCal(){
             // JSON_LEFT_SIDE_Arm
             val JSON_LEFT_SIDE_Arm_X =
@@ -921,49 +966,49 @@ class Posenet(
                 Json_CENTER_Shoulder_X.toDouble()
             ) * (180.0 / Math.PI)
 
-            //        Log.d("JSON_LEFT_SIDE_Arm_angle", JSON_LEFT_SIDE_Arm_angle.toString());
-            //        Log.d("JSON_LEFT_SIDE_Leg_angle", JSON_LEFT_SIDE_Leg_angle.toString());
-            //        Log.d("JSON_RIGHT_SIDE_Arm_angle", JSON_RIGHT_SIDE_Arm_angle.toString());
-            //        Log.d("JSON_RIGHT_SIDE_Leg_angle", JSON_RIGHT_SIDE_Leg_angle.toString());
-            //        Log.d("Json_Left_ForeArm_X", Json_LEFT_ForeArm_X.toString());
-            //        Log.d("Json_Left_ForeArm_Y", Json_LEFT_ForeArm_Y.toString());
-            //        Log.d("Json_Left_ForeArm_angle", Json_LEFT_ForeArm_angle.toString());
-            //        Log.d("Json_LEFT_Arm_X", Json_LEFT_Arm_X.toString());
-            //        Log.d("Json_LEFT_Arm_Y", Json_LEFT_Arm_Y.toString());
-            //        Log.d("Json_LEFT_Arm_angle", Json_LEFT_Arm_angle.toString());
-            //        Log.d("Json_LEFT_Body_X", Json_LEFT_Body_X.toString());
-            //        Log.d("Json_LEFT_Body_Y", Json_LEFT_Body_Y.toString());
-            //        Log.d("Json_LEFT_Body_angle", Json_LEFT_Body_angle.toString());
-            //        Log.d("Json_LEFT_KneeUp_X", Json_LEFT_KneeUp_X.toString());
-            //        Log.d("Json_LEFT_KneeUp_Y", Json_LEFT_KneeUp_Y.toString());
-            //        Log.d("Json_LEFT_KneeUp_angle", Json_LEFT_KneeUp_angle.toString());
-            //        Log.d("Json_LEFT_KneeDown_X", Json_LEFT_KneeDown_X.toString());
-            //        Log.d("Json_LEFT_KneeDown_Y", Json_LEFT_KneeDown_Y.toString());
-            //        Log.d("Json_LEFT_KneeDown_angle", Json_LEFT_KneeDown_angle.toString());
-            //        Log.d("Json_RIGHT_ForeArm_X", Json_RIGHT_ForeArm_X.toString());
-            //        Log.d("Json_RIGHT_ForeArm_Y", Json_LEFT_ForeArm_Y.toString());
-            //        Log.d("Json_RIGHT_ForeArm_angle", Json_RIGHT_ForeArm_angle.toString());
-            //        Log.d("Json_RIGHT_Arm_X", Json_RIGHT_Arm_X.toString());
-            //        Log.d("Json_RIGHT_Arm_Y", Json_RIGHT_Arm_Y.toString());
-            //        Log.d("Json_RIGHT_Arm_angle", Json_RIGHT_Arm_angle.toString());
-            //        Log.d("Json_RIGHT_Body_X", Json_RIGHT_Body_X.toString());
-            //        Log.d("Json_RIGHT_Body_Y", Json_RIGHT_Body_Y.toString());
-            //        Log.d("Json_RIGHT_Body_angle", Json_RIGHT_Body_angle.toString());
-            //        Log.d("Json_RIGHT_KneeUp_X", Json_RIGHT_KneeUp_X.toString());
-            //        Log.d("Json_RIGHT_KneeUp_Y", Json_RIGHT_KneeUp_Y.toString());
-            //        Log.d("Json_RIGHT_KneeUp_angle", Json_RIGHT_KneeUp_angle.toString());
-            //        Log.d("Json_RIGHT_KneeDown_X", Json_RIGHT_KneeDown_X.toString());
-            //        Log.d("Json_RIGHT_KneeDown_Y", Json_RIGHT_KneeDown_Y.toString());
-            //        Log.d("Json_RIGHT_KneeDown_angle", Json_RIGHT_KneeDown_angle.toString());
-            //        Log.d("Json_CENTER_Body_X", Json_CENTER_Body_X.toString());
-            //        Log.d("Json_CENTER_Body_Y", Json_CENTER_Body_Y.toString());
-            //        Log.d("Json_CENTER_Body_angle", Json_CENTER_Body_angle.toString());
-            //        Log.d("Json_CENTER_Shoulder_X", Json_CENTER_Shoulder_X.toString());
-            //        Log.d("Json_CENTER_Shoulder_Y", Json_CENTER_Shoulder_Y.toString());
-            //        Log.d("Json_CENTER_Shoulder_angle", Json_CENTER_Shoulder_angle.toString());
-
+//                    Log.d("JSON_LEFT_SIDE_Arm_angle", JSON_LEFT_SIDE_Arm_angle.toString());
+//                    Log.d("JSON_LEFT_SIDE_Leg_angle", JSON_LEFT_SIDE_Leg_angle.toString());
+//                    Log.d("JSON_RIGHT_SIDE_Arm_angle", JSON_RIGHT_SIDE_Arm_angle.toString());
+//                    Log.d("JSON_RIGHT_SIDE_Leg_angle", JSON_RIGHT_SIDE_Leg_angle.toString());
+////                    Log.d("Json_Left_ForeArm_X", Json_LEFT_ForeArm_X.toString());
+////                    Log.d("Json_Left_ForeArm_Y", Json_LEFT_ForeArm_Y.toString());
+//                    Log.d("Json_Left_ForeArm_angle", Json_LEFT_ForeArm_angle.toString());
+////                    Log.d("Json_LEFT_Arm_X", Json_LEFT_Arm_X.toString());
+////                    Log.d("Json_LEFT_Arm_Y", Json_LEFT_Arm_Y.toString());
+//                    Log.d("Json_LEFT_Arm_angle", Json_LEFT_Arm_angle.toString());
+////                    Log.d("Json_LEFT_Body_X", Json_LEFT_Body_X.toString());
+////                    Log.d("Json_LEFT_Body_Y", Json_LEFT_Body_Y.toString());
+//                    Log.d("Json_LEFT_Body_angle", Json_LEFT_Body_angle.toString());
+////                    Log.d("Json_LEFT_KneeUp_X", Json_LEFT_KneeUp_X.toString());
+////                    Log.d("Json_LEFT_KneeUp_Y", Json_LEFT_KneeUp_Y.toString());
+//                    Log.d("Json_LEFT_KneeUp_angle", Json_LEFT_KneeUp_angle.toString());
+////                    Log.d("Json_LEFT_KneeDown_X", Json_LEFT_KneeDown_X.toString());
+////                    Log.d("Json_LEFT_KneeDown_Y", Json_LEFT_KneeDown_Y.toString());
+//                    Log.d("Json_LEFT_KneeDown_angle", Json_LEFT_KneeDown_angle.toString());
+////                    Log.d("Json_RIGHT_ForeArm_X", Json_RIGHT_ForeArm_X.toString());
+////                    Log.d("Json_RIGHT_ForeArm_Y", Json_LEFT_ForeArm_Y.toString());
+//                    Log.d("Json_RIGHT_ForeArm_angle", Json_RIGHT_ForeArm_angle.toString());
+////                    Log.d("Json_RIGHT_Arm_X", Json_RIGHT_Arm_X.toString());
+////                    Log.d("Json_RIGHT_Arm_Y", Json_RIGHT_Arm_Y.toString());
+//                    Log.d("Json_RIGHT_Arm_angle", Json_RIGHT_Arm_angle.toString());
+////                    Log.d("Json_RIGHT_Body_X", Json_RIGHT_Body_X.toString());
+////                    Log.d("Json_RIGHT_Body_Y", Json_RIGHT_Body_Y.toString());
+//                    Log.d("Json_RIGHT_Body_angle", Json_RIGHT_Body_angle.toString());
+////                    Log.d("Json_RIGHT_KneeUp_X", Json_RIGHT_KneeUp_X.toString());
+////                    Log.d("Json_RIGHT_KneeUp_Y", Json_RIGHT_KneeUp_Y.toString());
+//                    Log.d("Json_RIGHT_KneeUp_angle", Json_RIGHT_KneeUp_angle.toString());
+////                    Log.d("Json_RIGHT_KneeDown_X", Json_RIGHT_KneeDown_X.toString());
+////                    Log.d("Json_RIGHT_KneeDown_Y", Json_RIGHT_KneeDown_Y.toString());
+//                    Log.d("Json_RIGHT_KneeDown_angle", Json_RIGHT_KneeDown_angle.toString());
+////                    Log.d("Json_CENTER_Body_X", Json_CENTER_Body_X.toString());
+////                    Log.d("Json_CENTER_Body_Y", Json_CENTER_Body_Y.toString());
+//                    Log.d("Json_CENTER_Body_angle", Json_CENTER_Body_angle.toString());
+////                    Log.d("Json_CENTER_Shoulder_X", Json_CENTER_Shoulder_X.toString());
+////                    Log.d("Json_CENTER_Shoulder_Y", Json_CENTER_Shoulder_Y.toString());
+//                    Log.d("Json_CENTER_Shoulder_angle", Json_CENTER_Shoulder_angle.toString());
         }
 
+        Log.d("Json FrameCount : ", ActiveCounter.toString())
         teacher_dataCal()
 
 //        if(ActiveCounter == 130|| ActiveCounter == 149|| ActiveCounter == 168){
@@ -971,45 +1016,53 @@ class Posenet(
 //            toneGen1.startTone(ToneGenerator.TONE_CDMA_ABBR_ALERT, 300)
 //        }
 
-        if (ActiveCounter == 150) {
+        if (ActiveCounter == ActionFramecount) {
             val toneGen1 = ToneGenerator(AudioManager.STREAM_MUSIC, 200)
             toneGen1.startTone(ToneGenerator.TONE_CDMA_ABBR_ALERT, 100)
-            var end = SystemClock.currentThreadTimeMillis();
-            Log.d("운동 한세트 걸린시간 : ", (end - start).toString());
-            start = end;
+//            var end = SystemClock.currentThreadTimeMillis();
+//            Log.d("운동 한세트 걸린시간 : ", (end - start).toString());
+//            start = end;
 
             ActiveCounter = 0
-            sidejackCount++;
-            Log.d("ActiveCounter", ActiveCounter.toString())
+
+
+            // 한 세트 출력
+//            if(kindAction == "sidejack 운동"){
+//                sidejackCount++;
+//            }
+//            else{
+//                widesquatCount++;
+//            }
+
         } else {
             ActiveCounter++;
-            Log.d("ActiveCounter", ActiveCounter.toString())
         }
 
     }
 
     // 운동 프레임 비교
-    fun FrameComparison() {
+    fun SidejackFrameComparison() {
 
         // 바운드 높게 줄수록 점수 높음
+
         if (Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 10 || Math.abs(
                 RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle
             ) <= 10
         ) {
             ActionScore += 100;
+        } else if (Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 15 || Math.abs(
+                RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle
+            ) <= 15
+        ) {
+            ActionScore += 90;
+        } else if (Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 20 || Math.abs(
+                RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle
+            ) <= 20
+        ) {
+            ActionScore += 80;
         } else if (Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 25 || Math.abs(
                 RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle
             ) <= 25
-        ) {
-            ActionScore += 90;
-        } else if (Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 35 || Math.abs(
-                RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle
-            ) <= 35
-        ) {
-            ActionScore += 80;
-        } else if (Math.abs(LEFT_SIDE_Arm_angle - JSON_LEFT_SIDE_Arm_angle) <= 50 || Math.abs(
-                RIGHT_SIDE_Arm_angle - JSON_RIGHT_SIDE_Arm_angle
-            ) <= 50
         ) {
             ActionScore += 70;
         } else {
@@ -1049,7 +1102,67 @@ class Posenet(
             }
         }
     }
+    // 운동 프레임 비교
+    fun WidesquatFrameComparison() {
 
+
+        // 바운드 높게 줄수록 점수 높음
+        if (Math.abs(LEFT_KneeUp_angle - Json_LEFT_KneeUp_angle) <= 10 || Math.abs(
+                RIGHT_KneeUp_angle - Json_RIGHT_KneeUp_angle
+            ) <= 10
+        ) {
+            ActionScore += 100;
+        } else if (Math.abs(LEFT_KneeUp_angle - Json_LEFT_KneeUp_angle) <= 20 || Math.abs(
+                RIGHT_KneeUp_angle - Json_RIGHT_KneeUp_angle) <= 20
+        ) {
+            ActionScore += 90;
+        } else if (Math.abs(LEFT_KneeUp_angle - Json_LEFT_KneeUp_angle) <= 25 || Math.abs(
+                RIGHT_KneeUp_angle - Json_RIGHT_KneeUp_angle) <= 25
+        ) {
+            ActionScore += 80;
+        } else if (Math.abs(LEFT_KneeUp_angle - Json_LEFT_KneeUp_angle) <= 30 || Math.abs(
+                RIGHT_KneeUp_angle - Json_RIGHT_KneeUp_angle) <= 30
+        ) {
+            ActionScore += 70;
+        } else {
+            ActionScore += 50;
+        }
+
+
+        Log.d("왼 허벅지 데이터 값 비교 : ", (LEFT_KneeUp_angle - Json_LEFT_KneeUp_angle).toString())
+        Log.d("왼 정강이 데이터 값 비교 : ", (LEFT_KneeDown_angle - Json_LEFT_KneeDown_angle).toString())
+
+        Log.d("오른 허벅지 데이터 값 비교 : ", (RIGHT_KneeUp_angle - Json_RIGHT_KneeUp_angle).toString())
+        Log.d("오른 정강이 데이터 값 비교 : ", (RIGHT_KneeDown_angle - Json_RIGHT_KneeDown_angle).toString())
+
+
+        if ((frameCounter % 15) == 0) {
+
+//            Log.d("ActionScore : ", ActionScore.toString())
+            Result_ActionScore = ActionScore / 15
+//            Log.d("Result_ActionScore : ", Result_ActionScore.toString())
+
+            if ((Result_ActionScore) >= 90) {
+                Log.d("평가중 굳 ActionScore : ", (Result_ActionScore).toString())
+                ActionFeedback = "Good"
+                Log.d("ActionFeedback : ", ActionFeedback)
+                ActionScore = 0
+                Result_ActionScore = 0
+            } else if ((Result_ActionScore) >= 80) {
+                Log.d("평가중 노말 ActionScore : ", (Result_ActionScore).toString())
+                ActionFeedback = "Normal"
+                Log.d("ActionFeedback : ", ActionFeedback)
+                ActionScore = 0
+                Result_ActionScore = 0
+            } else {
+//                Log.d("평가중 뱃 ActionScore : ", (Result_ActionScore).toString())
+                ActionFeedback = "Bad"
+//                Log.d("ActionFeedback : ",ActionFeedback)
+                ActionScore = 0
+                Result_ActionScore = 0
+            }
+        }
+    }
 
     // 튜토리얼로 활용
     fun poseEstimate(person: Person) {
